@@ -1,0 +1,2781 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>航空梦想漂流瓶</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg-deep: #061231;
+      --bg-night: #10265a;
+      --bg-sea: #0a1a3f;
+      --gold: #ffd86c;
+      --gold-soft: rgba(255, 216, 108, 0.26);
+      --gold-line: rgba(255, 216, 108, 0.46);
+      --ink: rgba(5, 8, 18, 0.48);
+      --glass: rgba(9, 16, 38, 0.28);
+      --glass-strong: rgba(9, 16, 38, 0.52);
+      --line: rgba(255, 255, 255, 0.12);
+      --text-main: #f7f5eb;
+      --text-soft: rgba(247, 245, 235, 0.74);
+      --shadow-xl: 0 28px 90px rgba(1, 4, 15, 0.45);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --font-title: "STKaiti", "KaiTi", serif;
+      --font-body: "Microsoft YaHei UI", "PingFang SC", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at 50% 20%, rgba(86, 108, 190, 0.18), transparent 32%),
+        linear-gradient(180deg, #112c63 0%, #0d214f 34%, #091838 68%, #050a18 100%);
+      color: var(--text-main);
+      font-family: var(--font-body);
+    }
+
+    body {
+      overflow: hidden;
+    }
+
+    button, input, textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .cosmos {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 38% 26%, rgba(255, 230, 174, 0.08), transparent 16%),
+        radial-gradient(circle at 53% 18%, rgba(255, 255, 255, 0.12), transparent 15%),
+        radial-gradient(circle at 74% 62%, rgba(134, 156, 255, 0.08), transparent 24%);
+    }
+
+    #galaxyCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.98;
+      filter: saturate(1.1);
+    }
+
+    .starfield,
+    .nebula-stream,
+    .haze {
+      position: absolute;
+      inset: -10%;
+      pointer-events: none;
+    }
+
+    .starfield {
+      background-image:
+        radial-gradient(circle, rgba(255, 235, 157, 0.95) 0 1.5px, transparent 2.4px),
+        radial-gradient(circle, rgba(255, 255, 255, 0.85) 0 1px, transparent 2px),
+        radial-gradient(circle, rgba(255, 221, 116, 0.8) 0 1.2px, transparent 2.2px);
+      background-size: 160px 160px, 260px 260px, 340px 340px;
+      background-position: 0 0, 90px 70px, 40px 150px;
+      opacity: 0.62;
+      animation: starDrift 54s linear infinite;
+    }
+
+    .nebula-stream::before,
+    .nebula-stream::after,
+    .haze::before,
+    .haze::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      pointer-events: none;
+    }
+
+    .nebula-stream::before {
+      width: 82vw;
+      height: 22vh;
+      left: 6vw;
+      top: 11vh;
+      background:
+        radial-gradient(circle at 45% 50%, rgba(255, 232, 190, 0.12), transparent 18%),
+        linear-gradient(90deg, rgba(255,255,255,0), rgba(188, 200, 255, 0.28), rgba(255, 213, 139, 0.18), rgba(255,255,255,0));
+      filter: blur(16px);
+      transform: rotate(-10deg);
+      opacity: 0.78;
+      animation: milkyMove 24s ease-in-out infinite;
+    }
+
+    .nebula-stream::after {
+      width: 46vw;
+      height: 18vh;
+      left: 32vw;
+      top: 18vh;
+      background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.16), rgba(255,255,255,0));
+      filter: blur(28px);
+      transform: rotate(-11deg);
+      opacity: 0.3;
+    }
+
+    .haze::before {
+      width: 42vw;
+      height: 42vw;
+      left: -5vw;
+      bottom: -12vw;
+      background: radial-gradient(circle, rgba(255, 211, 122, 0.14), transparent 68%);
+      filter: blur(26px);
+      animation: glowPulse 12s ease-in-out infinite;
+    }
+
+    .haze::after {
+      width: 46vw;
+      height: 24vh;
+      left: 22vw;
+      bottom: 6vh;
+      background: linear-gradient(180deg, rgba(255, 215, 122, 0.08), rgba(255,255,255,0));
+      filter: blur(30px);
+      opacity: 0.55;
+    }
+
+    .app-shell {
+      position: relative;
+      z-index: 2;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .scene-stage {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .scene-stage::before {
+      content: "";
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 28vh;
+      background:
+        linear-gradient(180deg, rgba(255, 232, 177, 0), rgba(255, 215, 123, 0.14)),
+        linear-gradient(180deg, rgba(8, 17, 44, 0), rgba(4, 7, 17, 0.92));
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .title-mark {
+      position: absolute;
+      top: 34px;
+      left: 42px;
+      z-index: 8;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      color: rgba(255, 245, 219, 0.94);
+      text-shadow: 0 0 18px rgba(255, 216, 108, 0.18);
+      pointer-events: none;
+    }
+
+    .title-mark strong {
+      font-family: var(--font-title);
+      font-size: clamp(22px, 3vw, 34px);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .title-mark span {
+      font-size: 12px;
+      color: rgba(255, 235, 179, 0.7);
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+    }
+
+    .sea-line,
+    .sea-reflection,
+    .shore-shadow {
+      display: none;
+    }
+
+    .painting-constellation,
+    .painting-constellation::before,
+    .painting-constellation::after {
+      position: absolute;
+      border-top: 2px solid rgba(255, 221, 154, 0.34);
+      border-right: 2px solid rgba(167, 209, 255, 0.14);
+      border-radius: 0 999px 0 0;
+      pointer-events: none;
+      z-index: 4;
+      content: "";
+    }
+
+    .painting-constellation {
+      width: 34vw;
+      height: 24vw;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) rotate(28deg);
+      animation: spiralArcFloat 16s ease-in-out infinite;
+      opacity: 0.76;
+    }
+
+    .painting-constellation::before {
+      width: 48vw;
+      height: 32vw;
+      top: -6vw;
+      left: -8vw;
+      transform: rotate(16deg);
+      opacity: 0.64;
+    }
+
+    .painting-constellation::after {
+      width: 22vw;
+      height: 16vw;
+      top: 5vw;
+      right: -18vw;
+      transform: rotate(-24deg);
+      opacity: 0.5;
+    }
+
+    .foreground-bottle {
+      position: absolute;
+      left: -4vw;
+      bottom: -2vh;
+      width: min(34vw, 470px);
+      aspect-ratio: 0.88;
+      transform: rotate(-14deg);
+      z-index: 5;
+      pointer-events: none;
+      filter: drop-shadow(0 0 20px rgba(255, 219, 132, 0.24));
+    }
+
+    .foreground-bottle::before {
+      content: "";
+      position: absolute;
+      inset: 7% 10% 6% 8%;
+      border-radius: 42% 42% 34% 34% / 46% 46% 28% 28%;
+      border: 6px solid rgba(255, 229, 178, 0.84);
+      background:
+        radial-gradient(circle at 28% 24%, rgba(255,255,255,0.46), transparent 14%),
+        linear-gradient(180deg, rgba(255,255,255,0.24), rgba(255, 228, 147, 0.06));
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.18),
+        inset 0 -60px 80px rgba(255, 206, 82, 0.12),
+        0 0 34px rgba(255, 218, 120, 0.26);
+    }
+
+    .foreground-bottle::after {
+      content: "";
+      position: absolute;
+      top: 6%;
+      left: 42%;
+      width: 20%;
+      height: 15%;
+      border-radius: 20px 20px 10px 10px;
+      background: linear-gradient(180deg, #b98338, #7a4f16);
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.18);
+    }
+
+    .bottle-inner-glow {
+      position: absolute;
+      inset: 16% 18% 18% 16%;
+      border-radius: 40% 40% 30% 30% / 44% 44% 24% 24%;
+      background:
+        radial-gradient(circle at 32% 66%, rgba(255, 229, 145, 0.9), transparent 22%),
+        radial-gradient(circle at 40% 78%, rgba(255, 223, 124, 0.6), transparent 34%);
+      opacity: 0.95;
+    }
+
+    .paper-note,
+    .star-piece {
+      position: absolute;
+      background: rgba(255, 244, 204, 0.92);
+      box-shadow: 0 0 18px rgba(255, 216, 108, 0.38);
+    }
+
+    .paper-note.note-a {
+      left: 26%;
+      bottom: 18%;
+      width: 19%;
+      height: 12%;
+      transform: rotate(16deg);
+    }
+
+    .paper-note.note-b {
+      left: 42%;
+      bottom: 22%;
+      width: 18%;
+      height: 11%;
+      transform: rotate(-18deg);
+    }
+
+    .star-piece {
+      clip-path: polygon(50% 0%, 61% 36%, 100% 36%, 68% 58%, 80% 100%, 50% 74%, 20% 100%, 32% 58%, 0% 36%, 39% 36%);
+      width: 18%;
+      height: 18%;
+      left: 18%;
+      bottom: 10%;
+      background: linear-gradient(180deg, #fff3b8, #ffd45e);
+      animation: starBlink 5.4s ease-in-out infinite;
+    }
+
+    .floating-paint-stars {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    .floating-paint-stars span {
+      position: absolute;
+      display: block;
+      width: var(--size);
+      height: calc(var(--size) * 1.55);
+      border-radius: 40% 40% 26% 26% / 32% 32% 22% 22%;
+      background:
+        radial-gradient(circle at 34% 24%, rgba(255,255,255,0.78), transparent 16%),
+        linear-gradient(180deg, rgba(229, 245, 255, 0.9), rgba(123, 181, 255, 0.26));
+      border: 1px solid rgba(255, 247, 219, 0.54);
+      box-shadow: 0 0 20px rgba(255, 216, 108, 0.26);
+      left: var(--x);
+      top: var(--y);
+      opacity: var(--opacity);
+      transform: rotate(var(--rotation, 0deg));
+      animation: bottleBlink var(--duration) ease-in-out infinite;
+    }
+
+    .floating-paint-stars span::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: calc(var(--size) * -0.18);
+      width: calc(var(--size) * 0.36);
+      height: calc(var(--size) * 0.24);
+      transform: translateX(-50%);
+      border-radius: 5px 5px 1px 1px;
+      background: linear-gradient(180deg, #d4a25b, #8b6026);
+    }
+
+    .floating-paint-stars span::after {
+      content: "";
+      position: absolute;
+      inset: 22% 20% 18%;
+      border-radius: 46%;
+      background: radial-gradient(circle at 50% 60%, rgba(255, 226, 129, 0.78), transparent 62%);
+      opacity: 0.86;
+    }
+
+    .dreamer-stage {
+      position: absolute;
+      right: 10vw;
+      bottom: 9vh;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 55% 45%, rgba(255, 220, 132, 0.06), transparent 52%);
+      overflow: visible;
+      z-index: 6;
+      pointer-events: none;
+    }
+
+    .flight-arc {
+      position: absolute;
+      right: 46px;
+      top: 40px;
+      width: 180px;
+      height: 160px;
+      border-top: 2px dashed rgba(255, 216, 108, 0.54);
+      border-right: 2px dashed rgba(255, 216, 108, 0.16);
+      border-radius: 0 180px 0 0;
+      transform: rotate(-4deg);
+      opacity: 0.85;
+    }
+
+    .dreamer-shadow {
+      position: absolute;
+      right: 22px;
+      bottom: 6px;
+      width: 118px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.42);
+      filter: blur(8px);
+    }
+
+    .dreamer {
+      position: absolute;
+      right: 44px;
+      bottom: 18px;
+      width: 120px;
+      height: 190px;
+      transform-origin: 70% 85%;
+    }
+
+    .dreamer.throwing {
+      animation: dreamerThrow 1.2s cubic-bezier(.18,.88,.18,1);
+    }
+
+    .dreamer-head {
+      position: absolute;
+      right: 28px;
+      top: 18px;
+      width: 28px;
+      height: 34px;
+      border-radius: 46% 46% 44% 44%;
+      background: #ffddb8;
+      box-shadow: 0 0 14px rgba(255, 219, 132, 0.12);
+    }
+
+    .dreamer-hair {
+      position: absolute;
+      right: 24px;
+      top: 12px;
+      width: 36px;
+      height: 20px;
+      border-radius: 30px 30px 8px 8px;
+      background: linear-gradient(180deg, #172036, #0a1020);
+      z-index: 2;
+    }
+
+    .dreamer-eye,
+    .dreamer-smile,
+    .identity-chip {
+      display: none;
+    }
+
+    .dreamer-body {
+      position: absolute;
+      right: 12px;
+      top: 46px;
+      width: 52px;
+      height: 82px;
+      border-radius: 22px 22px 18px 18px;
+      background: linear-gradient(180deg, #fff7e4, #d9d2c7 78%, #948e87);
+      box-shadow: inset 0 -18px 0 rgba(80, 72, 60, 0.14);
+    }
+
+    .dreamer-scarf {
+      position: absolute;
+      right: 52px;
+      top: 60px;
+      width: 12px;
+      height: 64px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255, 220, 132, 0.92), rgba(255, 220, 132, 0));
+      transform: rotate(-18deg);
+      filter: blur(0.2px);
+    }
+
+    .dreamer-scarf::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: -12px;
+      width: 28px;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #ffde7c, rgba(255, 222, 124, 0.24));
+      transform: rotate(26deg);
+    }
+
+    .dreamer-arm {
+      position: absolute;
+      width: 12px;
+      height: 66px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #efe7d7, #8a837a);
+      transform-origin: top center;
+    }
+
+    .arm-left {
+      right: 44px;
+      top: 68px;
+      transform: rotate(20deg);
+    }
+
+    .arm-right {
+      right: 0;
+      top: 52px;
+      transform: rotate(-50deg);
+    }
+
+    .dreamer.throwing .arm-right {
+      animation: armSwing 1s cubic-bezier(.18,.88,.18,1);
+    }
+
+    .dreamer-leg {
+      position: absolute;
+      width: 12px;
+      height: 72px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #5f5550, #2d2928);
+      top: 122px;
+    }
+
+    .leg-left { right: 40px; }
+    .leg-right { right: 22px; }
+
+    .dreamer-boot {
+      position: absolute;
+      width: 22px;
+      height: 10px;
+      border-radius: 12px;
+      left: -6px;
+      bottom: -1px;
+      background: #151211;
+    }
+
+    .dreamer-bottle {
+      position: absolute;
+      right: -8px;
+      top: 44px;
+      width: 22px;
+      height: 38px;
+      border-radius: 10px 10px 14px 14px;
+      background: linear-gradient(180deg, rgba(255, 247, 198, 0.96), rgba(255, 206, 82, 0.3));
+      border: 1px solid rgba(255, 249, 230, 0.62);
+      box-shadow: 0 0 22px rgba(255, 214, 101, 0.54);
+      transform: rotate(16deg);
+      transition: opacity 0.2s ease;
+    }
+
+    .dreamer-bottle::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: -8px;
+      width: 10px;
+      height: 10px;
+      border-radius: 4px 4px 0 0;
+      background: linear-gradient(180deg, #c9964e, #8f632a);
+    }
+
+    .dreamer.throwing .dreamer-bottle {
+      opacity: 0;
+    }
+
+    .launch-bottle {
+      position: fixed;
+      right: 12vw;
+      bottom: 22vh;
+      width: 22px;
+      height: 38px;
+      border-radius: 10px 10px 14px 14px;
+      background: linear-gradient(180deg, rgba(255, 247, 198, 0.96), rgba(255, 206, 82, 0.3));
+      border: 1px solid rgba(255, 249, 230, 0.62);
+      box-shadow: 0 0 22px rgba(255, 214, 101, 0.54);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 16;
+    }
+
+    .launch-bottle::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: -8px;
+      width: 10px;
+      height: 10px;
+      border-radius: 4px 4px 0 0;
+      background: linear-gradient(180deg, #c9964e, #8f632a);
+    }
+
+    .launch-bottle::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -8px;
+      width: 12px;
+      height: 56px;
+      transform: translateX(-50%) scaleY(0.4);
+      transform-origin: top center;
+      border-radius: 999px;
+      background:
+        linear-gradient(180deg, rgba(255, 248, 213, 0.95), rgba(255, 210, 88, 0.65) 35%, rgba(255, 210, 88, 0));
+      filter: blur(2px);
+      opacity: 0;
+    }
+
+    .launch-bottle.active {
+      animation: stageBottleFlight 2.6s cubic-bezier(.15,.92,.16,1) forwards;
+    }
+
+    .launch-bottle.active::after {
+      animation: rocketFlare 2.6s cubic-bezier(.15,.92,.16,1) forwards;
+    }
+
+    .composer-card {
+      position: absolute;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      width: min(620px, calc(100vw - 180px));
+      z-index: 9;
+      padding: 16px;
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(8, 14, 34, 0.42), rgba(8, 14, 34, 0.24));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-xl);
+    }
+
+    .composer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      gap: 10px;
+    }
+
+    .composer-head h2 {
+      margin: 0;
+      font-family: var(--font-title);
+      font-size: 16px;
+      font-weight: 600;
+      color: rgba(255, 240, 205, 0.96);
+      letter-spacing: 0.12em;
+    }
+
+    #inputCount {
+      font-size: 11px;
+      color: rgba(255, 238, 188, 0.66);
+      letter-spacing: 0.16em;
+    }
+
+    .composer-card textarea {
+      width: 100%;
+      height: 86px;
+      padding: 16px 18px;
+      resize: none;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(4, 8, 20, 0.28);
+      color: rgba(255, 250, 238, 0.94);
+      line-height: 1.8;
+      outline: none;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .composer-card textarea::placeholder {
+      color: rgba(255, 240, 205, 0.46);
+    }
+
+    .composer-card textarea:focus {
+      border-color: rgba(255, 221, 129, 0.46);
+      background: rgba(4, 8, 20, 0.38);
+    }
+
+    .composer-actions {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .launch-button,
+    .ghost-button {
+      min-width: 116px;
+      padding: 13px 20px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px);
+      transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .launch-button {
+      background: linear-gradient(135deg, rgba(255, 231, 169, 0.98), rgba(255, 208, 93, 0.92));
+      color: #3e2500;
+      box-shadow: 0 10px 24px rgba(255, 211, 111, 0.28);
+      font-weight: 700;
+    }
+
+    .launch-button.launching {
+      animation: launchButtonBlast 1.35s cubic-bezier(.2,.88,.22,1);
+      box-shadow: 0 0 0 0 rgba(255, 220, 132, 0.4), 0 16px 38px rgba(255, 211, 111, 0.42);
+    }
+
+    .ghost-button {
+      background: rgba(255,255,255,0.06);
+      color: rgba(255, 246, 221, 0.92);
+    }
+
+    .launch-button:hover,
+    .ghost-button:hover {
+      transform: translateY(-1px);
+    }
+
+    .launch-button:disabled {
+      opacity: 0.72;
+      cursor: wait;
+    }
+
+    .status-note {
+      margin-top: 10px;
+      min-height: 18px;
+      font-size: 12px;
+      color: rgba(255, 232, 172, 0.8);
+      text-align: center;
+      letter-spacing: 0.04em;
+    }
+
+    .my-bottles-card {
+      position: absolute;
+      top: 30px;
+      right: 26px;
+      width: 96px;
+      max-height: 64px;
+      z-index: 8;
+      padding: 12px 14px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(8, 14, 34, 0.22), rgba(8, 14, 34, 0.12));
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 18px 46px rgba(1, 6, 18, 0.26);
+      overflow: hidden;
+      transition: width 0.34s ease, max-height 0.34s ease, background 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .my-bottles-card:hover,
+    .my-bottles-card:focus-within,
+    .my-bottles-card.expanded {
+      width: min(280px, 28vw);
+      max-height: 58vh;
+      background: linear-gradient(180deg, rgba(8, 14, 34, 0.4), rgba(8, 14, 34, 0.2));
+      box-shadow: 0 24px 54px rgba(1, 6, 18, 0.34);
+    }
+
+    .my-bottles-head {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      color: rgba(255, 243, 214, 0.85);
+      min-height: 28px;
+    }
+
+    .my-bottles-head h3 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      font-family: var(--font-title);
+      white-space: nowrap;
+    }
+
+    .bottle-list {
+      max-height: calc(58vh - 48px);
+      overflow: auto;
+      display: grid;
+      gap: 10px;
+      padding-right: 4px;
+      opacity: 0;
+      transform: translateY(6px);
+      pointer-events: none;
+      transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+
+    .my-bottles-card:hover .bottle-list,
+    .my-bottles-card:focus-within .bottle-list,
+    .my-bottles-card.expanded .bottle-list {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .bottle-item {
+      border-radius: 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .bottle-item:hover {
+      transform: translateY(-1px);
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(255, 220, 132, 0.18);
+    }
+
+    .bottle-item button {
+      width: 100%;
+      padding: 12px 13px;
+      background: transparent;
+      color: inherit;
+      text-align: left;
+    }
+
+    .bottle-item strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255, 245, 218, 0.92);
+      line-height: 1.7;
+    }
+
+    .bottle-item small {
+      display: block;
+      color: rgba(255, 243, 214, 0.56);
+      line-height: 1.7;
+    }
+
+    .hero,
+    .hero-copy,
+    .hero-stats,
+    .content-grid,
+    .left-panel,
+    .stage-panel,
+    .section-title p,
+    .section-title span,
+    .composer-card p,
+    .composer-meta,
+    .stage-top,
+    .stage-tags,
+    .legend-row {
+      display: contents;
+    }
+
+    .metrics-ghost {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .galaxy-stage {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      z-index: 4;
+    }
+
+    .river-lane {
+      position: absolute;
+      top: 22vh;
+      left: 34vw;
+      width: 34vw;
+      height: 16vw;
+      background:
+        radial-gradient(circle at 18% 42%, rgba(255, 228, 157, 0.14), transparent 20%),
+        radial-gradient(circle at 44% 36%, rgba(184, 212, 255, 0.18), transparent 24%),
+        radial-gradient(circle at 72% 58%, rgba(255, 211, 122, 0.18), transparent 18%);
+      border-top: 2px solid rgba(255, 228, 157, 0.32);
+      border-right: 2px solid rgba(180, 210, 255, 0.08);
+      border-radius: 0 999px 0 0;
+      transform: rotate(-8deg);
+      filter: drop-shadow(0 0 18px rgba(255, 216, 108, 0.14));
+      mix-blend-mode: screen;
+      animation: laneFlow 18s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .river-lane.secondary {
+      width: 22vw;
+      height: 12vw;
+      top: 34vh;
+      left: 55vw;
+      transform: rotate(12deg);
+      animation-duration: 22s;
+    }
+
+    .river-lane::before,
+    .river-lane::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      inset: -12px;
+      border-top: 1px dashed rgba(255, 233, 180, 0.38);
+      border-right: 1px dashed rgba(171, 208, 255, 0.16);
+      opacity: 0.8;
+    }
+
+    .river-lane::after {
+      inset: 18px;
+      opacity: 0.52;
+      background:
+        radial-gradient(circle at 22% 40%, rgba(255,255,255,0.22), transparent 10%),
+        radial-gradient(circle at 48% 62%, rgba(255, 221, 129, 0.24), transparent 12%),
+        radial-gradient(circle at 74% 38%, rgba(170, 217, 255, 0.16), transparent 10%);
+      filter: blur(1px);
+    }
+
+    .bottle-field {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    .stage-hint,
+    #latestHint {
+      position: absolute;
+      left: 50%;
+      top: 104px;
+      transform: translateX(-50%);
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(7, 12, 28, 0.18);
+      color: rgba(255, 241, 198, 0.56);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.06);
+      pointer-events: none;
+      z-index: 7;
+    }
+
+    #latestHint {
+      top: auto;
+      bottom: 122px;
+      background: transparent;
+      border: 0;
+    }
+
+    .galaxy-bottle {
+      --float-duration: 14s;
+      --tilt: 0deg;
+      --depth: 1;
+      --shell-scale: 1;
+      --sway-scale: 0.45;
+      --sway-y-scale: 0.28;
+      --tilt-scale: 0.42;
+      --center-spin: 0deg;
+      --center-squeeze: 1;
+      --center-stretch: 1;
+      --center-glow-scale: 1;
+      --center-glow-opacity: 0.92;
+      --center-glow-blur: 6px;
+      --center-shell-glow: 20px;
+      --local-pointer-x: 0px;
+      --local-pointer-y: 0px;
+      --local-pointer-tilt: 0deg;
+      position: absolute;
+      display: grid;
+      place-items: center;
+      width: 96px;
+      height: 136px;
+      padding: 0;
+      background: transparent;
+      border: none;
+      transform: translate(-50%, -50%);
+      animation: bottleWander var(--float-duration) ease-in-out infinite;
+      z-index: 6;
+      transition: filter 0.25s ease, opacity 0.25s ease;
+    }
+
+    .galaxy-bottle:hover {
+      z-index: 10;
+    }
+
+    .galaxy-bottle:hover .bottle-bubble,
+    .galaxy-bottle:focus-visible .bottle-bubble {
+      opacity: 1;
+      transform: translate(-50%, -10px);
+    }
+
+    .galaxy-bottle:hover .bottle-shell,
+    .galaxy-bottle:focus-visible .bottle-shell {
+      transform:
+        translateY(-4px)
+        rotate(var(--center-spin))
+        scale(
+          calc(var(--shell-scale) * var(--orbit-scale, 1) * var(--center-squeeze, 1) * 1.06),
+          calc(var(--shell-scale) * var(--orbit-scale, 1) * var(--center-stretch, 1) * 1.06)
+        );
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.22),
+        0 0 calc(var(--center-shell-glow, 20px) + 12px) rgba(255, 220, 132, 0.42);
+    }
+
+    .galaxy-bottle:focus-visible {
+      outline: none;
+    }
+
+    .bottle-shell {
+      position: relative;
+      width: 34px;
+      height: 56px;
+      border-radius: 14px 14px 18px 18px;
+      background:
+        radial-gradient(circle at 34% 26%, rgba(255,255,255,0.72), transparent 18%),
+        linear-gradient(180deg, rgba(255, 245, 200, 0.88), rgba(255, 205, 76, 0.2));
+      border: 1px solid rgba(255, 245, 220, 0.8);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.22),
+        0 0 var(--center-shell-glow, 20px) rgba(255, 216, 108, 0.28);
+      transform:
+        rotate(var(--center-spin))
+        scale(
+          calc(var(--shell-scale) * var(--orbit-scale, 1) * var(--center-squeeze, 1)),
+          calc(var(--shell-scale) * var(--orbit-scale, 1) * var(--center-stretch, 1))
+        );
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .bottle-shell::before {
+      content: "";
+      position: absolute;
+      left: 10px;
+      top: -8px;
+      width: 14px;
+      height: 10px;
+      border-radius: 5px 5px 0 0;
+      background: linear-gradient(180deg, #d6a55a, #8f6329);
+    }
+
+    .bottle-shell::after {
+      content: "";
+      position: absolute;
+      inset: 8px 7px 12px;
+      border-radius: 14px;
+      background: radial-gradient(circle at 50% 60%, rgba(255, 228, 129, 0.75), transparent 64%);
+      opacity: 0.88;
+    }
+
+    .bottle-glow {
+      position: absolute;
+      inset: 10px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 224, 123, 0.8), transparent 64%);
+      filter: blur(var(--center-glow-blur, 6px));
+      opacity: var(--center-glow-opacity, 0.92);
+      transform: scale(var(--center-glow-scale, 1));
+      pointer-events: none;
+    }
+
+    .bottle-core {
+      position: absolute;
+      inset: 15px 10px 16px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.74), rgba(255,255,255,0.08));
+      opacity: 0.28;
+      pointer-events: none;
+    }
+
+    .bottle-bubble {
+      position: absolute;
+      left: 50%;
+      top: -6px;
+      transform: translate(-50%, 0);
+      min-width: 82px;
+      max-width: 150px;
+      padding: 7px 11px;
+      border-radius: 16px;
+      background: rgba(7, 12, 28, 0.7);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255, 243, 214, 0.88);
+      font-size: 11px;
+      line-height: 1.5;
+      opacity: 0;
+      transition: opacity 0.22s ease, transform 0.22s ease;
+      pointer-events: none;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+    }
+
+    .bottle-bubble::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -6px;
+      width: 12px;
+      height: 12px;
+      background: inherit;
+      border-right: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      transform: translateX(-50%) rotate(45deg);
+    }
+
+    .bottle-badge {
+      position: absolute;
+      right: -8px;
+      bottom: -5px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      font-size: 10px;
+      color: #5e3800;
+      background: linear-gradient(180deg, #ffe8a2, #ffcb58);
+      box-shadow: 0 4px 12px rgba(255, 216, 108, 0.24);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(3, 6, 14, 0.46);
+      z-index: 20;
+      backdrop-filter: blur(10px);
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-card {
+      width: min(740px, 100%);
+      max-height: min(86vh, 920px);
+      overflow: auto;
+      padding: 22px;
+      border-radius: 30px;
+      background: linear-gradient(180deg, rgba(10, 16, 34, 0.68), rgba(8, 13, 28, 0.82));
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.42);
+      animation: modalRise 0.72s ease;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .modal-head h2 {
+      margin: 0;
+      font-family: var(--font-title);
+      font-size: 28px;
+      letter-spacing: 0.08em;
+      color: rgba(255, 243, 214, 0.96);
+    }
+
+    .modal-head p {
+      margin: 6px 0 0;
+      color: rgba(255, 243, 214, 0.56);
+      font-size: 12px;
+    }
+
+    .close-button {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.88);
+      border: 1px solid rgba(255,255,255,0.08);
+      font-size: 22px;
+    }
+
+    .detail-grid {
+      display: grid;
+      gap: 14px;
+      animation: detailFade 0.92s ease;
+    }
+
+    .detail-card {
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .detail-card h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      color: rgba(255, 225, 155, 0.9);
+      letter-spacing: 0.12em;
+      font-weight: 500;
+    }
+
+    .detail-text {
+      margin: 0;
+      line-height: 1.95;
+      color: rgba(255, 248, 232, 0.94);
+    }
+
+    .detail-meta {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.06);
+      color: rgba(255, 243, 214, 0.66);
+      font-size: 11px;
+    }
+
+    .cloud-card {
+      background: linear-gradient(180deg, rgba(255, 221, 129, 0.1), rgba(255,255,255,0.03));
+      border-color: rgba(255, 221, 129, 0.18);
+    }
+
+    .comment-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .comment-item {
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .comment-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+      color: rgba(255, 243, 214, 0.56);
+      font-size: 11px;
+    }
+
+    .comment-content {
+      margin: 0;
+      color: rgba(255, 248, 232, 0.9);
+      line-height: 1.8;
+      font-size: 14px;
+    }
+
+    .comment-form {
+      display: grid;
+      gap: 10px;
+    }
+
+    .comment-row {
+      display: grid;
+      grid-template-columns: 170px 1fr;
+      gap: 10px;
+    }
+
+    .text-input,
+    .comment-form textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(2, 5, 14, 0.26);
+      color: rgba(255, 248, 232, 0.92);
+      border: 1px solid rgba(255,255,255,0.08);
+      outline: none;
+    }
+
+    .comment-form textarea {
+      min-height: 88px;
+      resize: vertical;
+      line-height: 1.8;
+    }
+
+    .comment-submit {
+      justify-self: start;
+      padding: 12px 18px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #ffe8a2, #ffcb58);
+      color: #563500;
+      font-weight: 700;
+    }
+
+    .empty-state {
+      padding: 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.03);
+      border: 1px dashed rgba(255,255,255,0.08);
+      color: rgba(255, 243, 214, 0.56);
+      line-height: 1.8;
+      text-align: center;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .bottle-list::-webkit-scrollbar,
+    .modal-card::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .bottle-list::-webkit-scrollbar-thumb,
+    .modal-card::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+    }
+
+    @keyframes starDrift {
+      from { transform: translate3d(0, 0, 0); }
+      to { transform: translate3d(-120px, 70px, 0); }
+    }
+
+    @keyframes milkyMove {
+      0%, 100% { transform: rotate(-10deg) translateX(0) scale(1); }
+      50% { transform: rotate(-8deg) translateX(22px) scale(1.03); }
+    }
+
+    @keyframes glowPulse {
+      0%, 100% { opacity: 0.48; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.04); }
+    }
+
+    @keyframes waterShiver {
+      0%, 100% { transform: translateX(0) scaleY(1); opacity: 0.34; }
+      50% { transform: translateX(10px) scaleY(1.04); opacity: 0.46; }
+    }
+
+    @keyframes spiralArcFloat {
+      0%, 100% { transform: translate(-50%, -50%) rotate(28deg) scale(1); }
+      50% { transform: translate(-50%, -50%) rotate(34deg) scale(1.03); }
+    }
+
+    @keyframes bottleBlink {
+      0%, 100% { opacity: 0.52; transform: scale(0.92); }
+      50% { opacity: 1; transform: scale(1.06); }
+    }
+
+    @keyframes dreamerThrow {
+      0% { transform: translateX(0) translateY(0) rotate(0deg); }
+      25% { transform: translateX(6px) translateY(-2px) rotate(-4deg); }
+      55% { transform: translateX(12px) translateY(-9px) rotate(-10deg); }
+      75% { transform: translateX(5px) translateY(-4px) rotate(2deg); }
+      100% { transform: translateX(0) translateY(0) rotate(0deg); }
+    }
+
+    @keyframes armSwing {
+      0% { transform: rotate(-50deg); }
+      40% { transform: rotate(8deg); }
+      70% { transform: rotate(42deg); }
+      100% { transform: rotate(-50deg); }
+    }
+
+    @keyframes stageBottleFlight {
+      0% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) rotate(12deg) scale(1);
+      }
+      18% {
+        opacity: 1;
+        transform: translate3d(8px, -22px, 0) rotate(6deg) scale(1.06);
+      }
+      40% {
+        opacity: 1;
+        transform: translate3d(-14vw, -18vh, 0) rotate(-2deg) scale(1.18);
+      }
+      66% {
+        opacity: 1;
+        transform: translate3d(-36vw, -29vh, 0) rotate(8deg) scale(1.92);
+      }
+      84% {
+        opacity: 1;
+        transform: translate3d(-36vw, -29vh, 0) rotate(3deg) scale(2.24);
+      }
+      100% {
+        opacity: 0;
+        transform: translate3d(-36vw, -31vh, 0) rotate(-2deg) scale(0.52);
+      }
+    }
+
+    @keyframes rocketFlare {
+      0% {
+        opacity: 0;
+        transform: translateX(-50%) scaleY(0.2);
+      }
+      10% {
+        opacity: 1;
+        transform: translateX(-50%) scaleY(1);
+      }
+      55% {
+        opacity: 0.85;
+        transform: translateX(-50%) scaleY(1.4);
+      }
+      76% {
+        opacity: 0.34;
+        transform: translateX(-50%) scaleY(0.9);
+      }
+      100% {
+        opacity: 0;
+        transform: translateX(-50%) scaleY(0.4);
+      }
+    }
+
+    @keyframes launchButtonBlast {
+      0% {
+        transform: translateY(0) scale(1);
+      }
+      28% {
+        transform: translateY(1px) scale(0.98);
+      }
+      52% {
+        transform: translateY(-3px) scale(1.03);
+      }
+      100% {
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes laneFlow {
+      0%, 100% { transform: rotate(-8deg) translateX(0) scale(1); }
+      50% { transform: rotate(-6deg) translateX(-22px) scale(1.03); }
+    }
+
+    @keyframes bottleWander {
+      0%, 100% {
+        transform:
+          translate(
+            calc(-50% + (var(--local-pointer-x) * var(--sway-scale))),
+            calc(-50% + (var(--local-pointer-y) * var(--sway-y-scale)))
+          )
+          translate3d(0, 0, 0)
+          rotate(calc(var(--tilt) - 4deg + (var(--local-pointer-tilt) * var(--tilt-scale))));
+      }
+      25% {
+        transform:
+          translate(
+            calc(-50% + (var(--local-pointer-x) * var(--sway-scale))),
+            calc(-50% + (var(--local-pointer-y) * var(--sway-y-scale)))
+          )
+          translate3d(10px, -12px, 0)
+          rotate(calc(var(--tilt) + 4deg + (var(--local-pointer-tilt) * var(--tilt-scale))));
+      }
+      50% {
+        transform:
+          translate(
+            calc(-50% + (var(--local-pointer-x) * var(--sway-scale))),
+            calc(-50% + (var(--local-pointer-y) * var(--sway-y-scale)))
+          )
+          translate3d(-8px, -22px, 0)
+          rotate(calc(var(--tilt) - 2deg + (var(--local-pointer-tilt) * var(--tilt-scale))));
+      }
+      75% {
+        transform:
+          translate(
+            calc(-50% + (var(--local-pointer-x) * var(--sway-scale))),
+            calc(-50% + (var(--local-pointer-y) * var(--sway-y-scale)))
+          )
+          translate3d(-14px, -8px, 0)
+          rotate(calc(var(--tilt) + 6deg + (var(--local-pointer-tilt) * var(--tilt-scale))));
+      }
+    }
+
+    @keyframes modalRise {
+      from { opacity: 0; transform: translateY(14px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes detailFade {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 980px) {
+      body {
+        overflow: auto;
+      }
+
+      .app-shell,
+      .scene-stage {
+        min-height: 100vh;
+      }
+
+      .foreground-bottle {
+        width: min(54vw, 360px);
+        left: -12vw;
+        bottom: 8vh;
+      }
+
+      .dreamer-stage {
+        right: 4vw;
+        bottom: 20vh;
+        transform: scale(0.86);
+      }
+
+      .my-bottles-card {
+        width: 88px;
+        top: 78px;
+        right: 12px;
+      }
+
+      .my-bottles-card:hover,
+      .my-bottles-card:focus-within,
+      .my-bottles-card.expanded {
+        width: min(240px, 42vw);
+      }
+
+      .composer-card {
+        width: min(92vw, 620px);
+        bottom: 14px;
+      }
+
+      .stage-hint,
+      #latestHint {
+        display: none;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .title-mark {
+        top: 22px;
+        left: 20px;
+      }
+
+      .my-bottles-card {
+        left: 14px;
+        right: 14px;
+        top: auto;
+        bottom: 142px;
+        width: auto;
+        max-height: 56px;
+      }
+
+      .my-bottles-card:hover,
+      .my-bottles-card:focus-within,
+      .my-bottles-card.expanded {
+        max-height: 20vh;
+      }
+
+      .bottle-list {
+        max-height: 12vh;
+      }
+
+      .dreamer-stage {
+        right: -8vw;
+        bottom: 22vh;
+        transform: scale(0.72);
+      }
+
+      .foreground-bottle {
+        width: min(62vw, 320px);
+        left: -16vw;
+        bottom: 16vh;
+      }
+
+      .sea-reflection {
+        width: 34vw;
+        left: 42%;
+      }
+
+      .comment-row {
+        grid-template-columns: 1fr;
+      }
+
+      .modal {
+        padding: 12px;
+      }
+
+      .modal-card {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="cosmos" aria-hidden="true">
+    <canvas id="galaxyCanvas"></canvas>
+    <div class="starfield"></div>
+    <div class="nebula-stream"></div>
+    <div class="haze"></div>
+  </div>
+
+  <main class="app-shell">
+    <section class="scene-stage">
+      <div class="title-mark">
+        <strong>航空梦想漂流瓶</strong>
+        <span>Drift Into The Sky</span>
+      </div>
+
+      <div class="sea-line" aria-hidden="true"></div>
+      <div class="sea-reflection" aria-hidden="true"></div>
+      <div class="shore-shadow" aria-hidden="true"></div>
+      <div class="painting-constellation" aria-hidden="true"></div>
+
+      <div class="floating-paint-stars" aria-hidden="true">
+        <span style="--size:30px;--x:11%;--y:11%;--opacity:.96;--duration:5s;--rotation:-18deg;"></span>
+        <span style="--size:20px;--x:18%;--y:22%;--opacity:.88;--duration:6.2s;--rotation:16deg;"></span>
+        <span style="--size:24px;--x:31%;--y:17%;--opacity:.92;--duration:4.8s;--rotation:-28deg;"></span>
+        <span style="--size:18px;--x:41%;--y:24%;--opacity:.85;--duration:6.4s;--rotation:22deg;"></span>
+        <span style="--size:22px;--x:53%;--y:22%;--opacity:.93;--duration:5.2s;--rotation:-12deg;"></span>
+        <span style="--size:16px;--x:60%;--y:16%;--opacity:.84;--duration:6.8s;--rotation:34deg;"></span>
+        <span style="--size:26px;--x:71%;--y:28%;--opacity:.95;--duration:5.8s;--rotation:-24deg;"></span>
+        <span style="--size:14px;--x:79%;--y:18%;--opacity:.8;--duration:7s;--rotation:20deg;"></span>
+        <span style="--size:18px;--x:84%;--y:10%;--opacity:.92;--duration:5.6s;--rotation:-8deg;"></span>
+        <span style="--size:16px;--x:22%;--y:46%;--opacity:.8;--duration:6.4s;--rotation:27deg;"></span>
+        <span style="--size:22px;--x:8%;--y:58%;--opacity:.9;--duration:5.4s;--rotation:-32deg;"></span>
+        <span style="--size:20px;--x:66%;--y:47%;--opacity:.9;--duration:5.1s;--rotation:14deg;"></span>
+      </div>
+
+      <div class="foreground-bottle" aria-hidden="true">
+        <div class="bottle-inner-glow"></div>
+        <div class="paper-note note-a"></div>
+        <div class="paper-note note-b"></div>
+        <div class="star-piece"></div>
+      </div>
+
+      <div class="dreamer-stage">
+        <div class="flight-arc"></div>
+        <div class="dreamer-shadow"></div>
+        <div class="dreamer" id="dreamer">
+          <div class="dreamer-hair"></div>
+          <div class="dreamer-head"></div>
+          <div class="dreamer-eye eye-left"></div>
+          <div class="dreamer-eye eye-right"></div>
+          <div class="dreamer-smile"></div>
+          <div class="dreamer-body"></div>
+          <div class="dreamer-scarf"></div>
+          <div class="dreamer-arm arm-left"></div>
+          <div class="dreamer-arm arm-right"></div>
+          <div class="dreamer-leg leg-left"><div class="dreamer-boot"></div></div>
+          <div class="dreamer-leg leg-right"><div class="dreamer-boot"></div></div>
+          <div class="dreamer-bottle"></div>
+        </div>
+        <div class="launch-bottle" id="launchBottle"></div>
+      </div>
+
+      <section class="galaxy-stage">
+        <div class="river-lane"></div>
+        <div class="river-lane secondary"></div>
+        <div class="bottle-field" id="bottleField"></div>
+        <div class="stage-hint">点开漂流瓶</div>
+        <div id="latestHint">新投出的瓶子会更亮一点</div>
+      </section>
+
+      <section class="my-bottles-card">
+        <div class="my-bottles-head">
+          <h3>我的瓶</h3>
+        </div>
+        <div class="bottle-list" id="myBottleList"></div>
+      </section>
+
+      <section class="composer-card">
+        <div class="composer-head">
+          <h2>写给天空</h2>
+          <span id="inputCount">0 / 180</span>
+        </div>
+        <label class="sr-only" for="dreamInput">飞行梦想输入框</label>
+        <textarea id="dreamInput" maxlength="180" placeholder="写下一句飞行梦想、问题或心事……"></textarea>
+        <div class="composer-actions">
+          <button class="launch-button" id="launchButton" type="button">发射</button>
+          <button class="ghost-button" id="focusMyBottleButton" type="button">我的瓶</button>
+        </div>
+        <div class="status-note" id="statusNote"></div>
+      </section>
+
+      <div class="metrics-ghost" aria-hidden="true">
+        <span id="totalBottleCount">0</span>
+        <span id="myBottleCount">0</span>
+        <span id="commentCount">0</span>
+        <span id="cloudReplyCount">0</span>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal" id="detailModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+      <div class="modal-head">
+        <div>
+          <h2 id="detailTitle">星河漂流瓶</h2>
+          <p id="detailSubtitle">打开后可看到原文、云端回复和后续互动</p>
+        </div>
+        <button class="close-button" id="closeModal" type="button" aria-label="关闭">×</button>
+      </div>
+
+      <div class="detail-grid">
+        <section class="detail-card">
+          <h3>瓶中的内容</h3>
+          <p class="detail-text" id="detailText"></p>
+          <div class="detail-meta" id="detailMeta"></div>
+        </section>
+
+        <section class="detail-card cloud-card">
+          <h3>云端回信</h3>
+          <p class="detail-text" id="detailCloudReply"></p>
+        </section>
+
+        <section class="detail-card">
+          <h3>旅人的回应</h3>
+          <div class="comment-list" id="commentList"></div>
+        </section>
+
+        <section class="detail-card">
+          <h3>留下你的话</h3>
+          <form class="comment-form" id="commentForm">
+            <div class="comment-row">
+              <label>
+                <span class="sr-only">留言昵称</span>
+                <input class="text-input" id="commentAuthor" maxlength="20" placeholder="你的昵称，例如：云端旅人">
+              </label>
+              <label>
+                <span class="sr-only">一句短签名</span>
+                <input class="text-input" id="commentPreview" maxlength="26" placeholder="一句短短的飞行签名，可留空">
+              </label>
+            </div>
+            <label>
+              <span class="sr-only">留言内容</span>
+              <textarea id="commentText" maxlength="160" placeholder="给这只漂流瓶写下建议、鼓励、知识补充或温柔回应吧。"></textarea>
+            </label>
+            <button class="comment-submit" type="submit">发送旅人回复</button>
+          </form>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "aviation-dream-bottles-v3";
+    const state = {
+      bottles: [],
+      selectedBottleId: null,
+      aliasIndex: 0,
+      lastLaunchedBottleId: null,
+      orbitAnimationFrame: null,
+      orbitLastTick: 0
+    };
+
+    const aliasPool = ["云端旅人", "机翼观察员", "夜航乘客", "航迹收藏家", "风向记录员", "星屿机长", "远方副驾", "玻璃瓶回信者"];
+
+    const replyPools = {
+      pilot: [
+        "你写下的不是一句空想，而是一条真实可抵达的航线。想成为飞行员，就先把梦想拆成今天能做到的小动作，比如体能、英语、数理基础和持续训练。",
+        "想飞的人，最先练习的往往不是冲上云端，而是长期稳定地准备自己。你已经在起飞跑道上了，继续坚持会比你想象中更有力量。",
+        "飞行员的成长不是一跃而成，而是无数次模拟、复盘和克服紧张之后的成熟。你现在的认真，本身就是很好的起飞姿态。"
+      ],
+      question: [
+        "这是一个很像机库里会被反复讨论的问题。飞行世界里，很多安全和效率都来自结构设计、气动布局与冗余系统之间的配合，所以继续追问下去很值得。",
+        "你的问题很有航空味道。很多看似平常的飞行细节，背后都藏着气动力学、材料学和飞行程序设计的答案，说明你已经在用真正的航空视角看世界。",
+        "好问题。航空知识经常不是一句话能说完，但你已经找到了最正确的入口: 先保持好奇，再一步步把原理拆开理解。"
+      ],
+      travel: [
+        "你想去的地方，也许正在云层的另一边等你。先把那幅飞行画面记清楚，未来每一次攒下的勇气和行动，都会让它离现实更近一点。",
+        "关于远方的梦想最迷人的地方，是它总会逼着我们把生活过得更清醒一点。把目的地写下来，世界就会慢慢开始回应你。",
+        "从舷窗看出去的光线、云海和地平线，往往会比想象中更震撼。愿你有一天带着期待起飞，也带着故事平安落地。"
+      ],
+      invention: [
+        "这个想法很像真正的航空创新起点。哪怕现在只是一个模糊的设想，只要继续积累结构、能源和空气动力学方面的知识，它就有机会长出真正的翼型。",
+        "很多航空发明最初都只是一个看起来过于大胆的念头。保持这种想象力，同时学会把概念画成方案，你会离创造更近。",
+        "你写下的是设计者的语言。未来航空最需要的，正是既敢做梦、又愿意把梦想落成图纸的人。"
+      ],
+      fear: [
+        "害怕并不说明你不适合飞行，反而说明你认真看待它。把恐惧拆成具体问题，逐个认识它，你就会发现勇气并不是没有害怕，而是仍然愿意继续靠近天空。",
+        "很多人与天空真正和解，是从承认自己的紧张开始的。你不需要一下子变得无所畏惧，只需要比昨天更靠近一点点。",
+        "飞行梦想里常常夹着犹豫，这是很正常的。先别逼自己立刻飞得很高，先让自己稳定地向前滑行，信心会在一次次尝试里长出来。"
+      ],
+      knowledge: [
+        "送你一条航空冷知识: 客机舷窗常常采用圆角设计，是为了分散高空增压带来的应力集中，这种看起来温和的曲线其实非常关键。",
+        "送你一条飞行知识: 飞机并不是只靠发动机把自己硬推上天，更重要的是机翼上下表面的压差和整体气动布局共同产生升力。",
+        "送你一条航空观察: 飞机在恶劣天气下依然能保持航路，依靠的不只是飞行员经验，还有机载雷达、程序标准和多层冗余系统。"
+      ],
+      encouragement: [
+        "星河读懂了你的心意。哪怕梦想现在还停留在纸上，它也已经开始改变你的方向感。继续保留这份热爱，天空会给你回音。",
+        "有些愿望不需要立刻实现，先被认真地写下来，就已经很珍贵。愿你把今天这份心意留住，等风来的时候就能更稳地起飞。",
+        "云端想告诉你: 热爱飞行的人，心里通常都藏着一片更大的世界。把这只瓶子留在星河里，未来的你会回来感谢现在的自己。"
+      ]
+    };
+
+    const seedBottles = [
+      {
+        id: "seed-1",
+        author: "夜航见习生",
+        text: "我想成为飞行员，但担心自己在训练里会很慢，怕追不上别人。",
+        cloudReply: "担心跟不上，其实说明你已经在认真想象真实训练的样子。飞行成长比的是稳定、复盘和持续投入，不是谁一开始更快。",
+        category: "pilot",
+        createdAt: new Date("2026-05-16T20:16:00+08:00").toISOString(),
+        isMine: false,
+        orbitX: 18,
+        orbitY: 34,
+        size: 1,
+        floatDuration: 15,
+        comments: [
+          { id: "c-1", author: "云端副驾", preview: "送你一句", text: "别先和别人比速度，先练会自己的节奏。训练最怕心乱，不怕慢。", createdAt: new Date("2026-05-16T20:28:00+08:00").toISOString(), type: "traveler" },
+          { id: "c-2", author: "风洞笔记员", preview: "小建议", text: "可以先从体能和英语开始做计划，哪怕每次只进一点，也是在朝跑道靠近。", createdAt: new Date("2026-05-16T20:40:00+08:00").toISOString(), type: "traveler" }
+        ]
+      },
+      {
+        id: "seed-2",
+        author: "舷窗研究社",
+        text: "为什么很多飞机的窗户是圆角的？感觉这件事一定不只是为了好看。",
+        cloudReply: "你猜对了。圆角能减少高空增压时窗角的应力集中，让机身结构更不容易出现疲劳裂纹，所以它首先是一个安全设计。",
+        category: "knowledge",
+        createdAt: new Date("2026-05-16T21:02:00+08:00").toISOString(),
+        isMine: false,
+        orbitX: 42,
+        orbitY: 54,
+        size: 0.96,
+        floatDuration: 18,
+        comments: [
+          { id: "c-3", author: "结构课代表", preview: "补充", text: "早期一些方形窗设计曾暴露过结构疲劳问题，后来圆角逐渐成为更成熟的方案。", createdAt: new Date("2026-05-16T21:18:00+08:00").toISOString(), type: "traveler" }
+        ]
+      },
+      {
+        id: "seed-3",
+        author: "云海旅人",
+        text: "我想带家人坐一次飞机去看雪山和海边，最好还能在日落时穿过云层。",
+        cloudReply: "这是一种很会发光的愿望。带着家人一起飞向远方，本身就像把温柔装进机舱。愿你们未来真的能在云层边缘一起看到落日。",
+        category: "travel",
+        createdAt: new Date("2026-05-16T21:36:00+08:00").toISOString(),
+        isMine: false,
+        orbitX: 66,
+        orbitY: 28,
+        size: 1.08,
+        floatDuration: 16,
+        comments: []
+      },
+      {
+        id: "seed-4",
+        author: "未来机翼工坊",
+        text: "如果以后有更安静、更环保的飞机，会不会让城市和机场的关系也变得更温柔？",
+        cloudReply: "这已经是设计思维了。更低噪声推进、更高效率能源系统和更好的机场运营模式，确实会一起改变城市与飞行的关系。",
+        category: "invention",
+        createdAt: new Date("2026-05-16T22:10:00+08:00").toISOString(),
+        isMine: false,
+        orbitX: 82,
+        orbitY: 62,
+        size: 1.04,
+        floatDuration: 19,
+        comments: [
+          { id: "c-4", author: "绿色航路支持者", preview: "我也觉得", text: "未来航空不只是更快，也会更安静、更节能，城市会更愿意拥抱机场。", createdAt: new Date("2026-05-16T22:20:00+08:00").toISOString(), type: "traveler" }
+        ]
+      }
+    ];
+
+    const ambientBottleIdeas = [
+      ["夜海航站", "想在第一次夜航时，从舷窗看见整座城市像星图一样亮起来。", "travel"],
+      ["低空来信", "如果有一天能坐着小飞机掠过海岸线，我一定会一直看着机翼边的光。", "travel"],
+      ["晨风副驾", "我很好奇清晨起飞时，跑道两边的灯和太阳升起的那一刻会不会重叠。", "question"],
+      ["星云维修库", "总觉得飞机维修库深夜还亮着灯的样子，像守护天空的另一群人。", "encouragement"],
+      ["高空提问箱", "飞机穿过厚云层时，飞行员看到的世界会不会忽然安静下来？", "question"],
+      ["纸翼岛", "我想设计一种更轻盈的翼型，让未来的小飞机也能像海鸟一样柔和转弯。", "invention"],
+      ["云层广播", "有时候只是想到要飞，就觉得生活里那些很沉的事情也能轻一点。", "encouragement"],
+      ["远航观测点", "要是有机会，我想在日落前起飞，在夜色完全降下来时落地。", "travel"],
+      ["星轨学徒", "我还没有真正上过飞机，但总觉得自己早晚会沿着一条航线离开这里。", "encouragement"],
+      ["引擎花园", "如果未来飞机的声音能更轻，会不会像把天空也照顾得更温柔了一点。", "invention"],
+      ["云端坐标局", "想知道暴雨天气里，飞机是怎么一步步找到最安全航路的。", "knowledge"],
+      ["海平面之后", "我想把未来第一次远行留给一条沿海航线，最好能看见月光落在海上。", "travel"]
+    ];
+
+    const ambientBottleLayouts = [
+      { orbitX: 12, orbitY: 20, size: 0.74, depth: 0.72, floatDuration: 20, tilt: -26 },
+      { orbitX: 20, orbitY: 27, size: 0.8, depth: 0.78, floatDuration: 18, tilt: 18 },
+      { orbitX: 29, orbitY: 18, size: 0.68, depth: 0.68, floatDuration: 23, tilt: -10 },
+      { orbitX: 38, orbitY: 34, size: 0.96, depth: 1.02, floatDuration: 16, tilt: 24 },
+      { orbitX: 47, orbitY: 22, size: 0.86, depth: 0.86, floatDuration: 19, tilt: -22 },
+      { orbitX: 56, orbitY: 30, size: 1.14, depth: 1.18, floatDuration: 15, tilt: 14 },
+      { orbitX: 63, orbitY: 18, size: 0.72, depth: 0.7, floatDuration: 24, tilt: -30 },
+      { orbitX: 71, orbitY: 24, size: 0.9, depth: 0.92, floatDuration: 18, tilt: 28 },
+      { orbitX: 78, orbitY: 16, size: 0.66, depth: 0.64, floatDuration: 25, tilt: -16 },
+      { orbitX: 84, orbitY: 32, size: 1.2, depth: 1.26, floatDuration: 14, tilt: 20 },
+      { orbitX: 34, orbitY: 46, size: 0.82, depth: 0.8, floatDuration: 21, tilt: -12 },
+      { orbitX: 74, orbitY: 50, size: 1.08, depth: 1.1, floatDuration: 17, tilt: 8 }
+    ];
+
+    const elements = {
+      dreamInput: document.getElementById("dreamInput"),
+      inputCount: document.getElementById("inputCount"),
+      launchButton: document.getElementById("launchButton"),
+      focusMyBottleButton: document.getElementById("focusMyBottleButton"),
+      myBottlesCard: document.querySelector(".my-bottles-card"),
+      statusNote: document.getElementById("statusNote"),
+      dreamer: document.getElementById("dreamer"),
+      launchBottle: document.getElementById("launchBottle"),
+      bottleField: document.getElementById("bottleField"),
+      myBottleList: document.getElementById("myBottleList"),
+      totalBottleCount: document.getElementById("totalBottleCount"),
+      myBottleCount: document.getElementById("myBottleCount"),
+      commentCount: document.getElementById("commentCount"),
+      cloudReplyCount: document.getElementById("cloudReplyCount"),
+      latestHint: document.getElementById("latestHint"),
+      detailModal: document.getElementById("detailModal"),
+      closeModal: document.getElementById("closeModal"),
+      detailTitle: document.getElementById("detailTitle"),
+      detailSubtitle: document.getElementById("detailSubtitle"),
+      detailText: document.getElementById("detailText"),
+      detailMeta: document.getElementById("detailMeta"),
+      detailCloudReply: document.getElementById("detailCloudReply"),
+      commentList: document.getElementById("commentList"),
+      commentForm: document.getElementById("commentForm"),
+      commentAuthor: document.getElementById("commentAuthor"),
+      commentPreview: document.getElementById("commentPreview"),
+      commentText: document.getElementById("commentText"),
+      galaxyCanvas: document.getElementById("galaxyCanvas"),
+      sceneStage: document.querySelector(".scene-stage")
+    };
+
+    function uid(prefix) {
+      return prefix + "-" + Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-4);
+    }
+
+    function randomFrom(list) {
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function clampText(text, max) {
+      return text.length <= max ? text : text.slice(0, max) + "...";
+    }
+
+    function formatDate(isoString) {
+      const date = new Date(isoString);
+      return date.toLocaleString("zh-CN", {
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+
+    function hydrateBottle(bottle) {
+      const centerXPct = 52;
+      const centerYPct = 43;
+      const orbitX = typeof bottle.orbitX === "number" ? bottle.orbitX : 16 + Math.random() * 70;
+      const orbitY = typeof bottle.orbitY === "number" ? bottle.orbitY : 18 + Math.random() * 60;
+      const deltaXPct = orbitX - centerXPct;
+      const deltaYPct = orbitY - centerYPct;
+      const defaultLane = (((Math.round(orbitX) + Math.round(orbitY)) % 5) - 2) * 0.34;
+      const rawRadiusFactor = typeof bottle.spiralRadiusFactor === "number"
+        ? bottle.spiralRadiusFactor
+        : Math.max(0.44, Math.min(0.82, Math.hypot(deltaXPct / 100, deltaYPct / 100) + 0.05));
+      const rawInnerFactor = typeof bottle.spiralInnerFactor === "number"
+        ? bottle.spiralInnerFactor
+        : +(0.03 + Math.random() * 0.018).toFixed(3);
+      const normalizedRadiusFactor = Math.max(0.44, Math.min(0.86, rawRadiusFactor));
+      const normalizedInnerFactor = Math.max(0.014, Math.min(normalizedRadiusFactor - 0.12, rawInnerFactor));
+      const normalizedTurns = typeof bottle.spiralTurns === "number"
+        ? Math.max(1.12, Math.min(1.96, bottle.spiralTurns))
+        : +(1.18 + Math.random() * 0.62).toFixed(2);
+      const normalizedSpeed = typeof bottle.spiralSpeed === "number"
+        ? Math.max(0.042, Math.min(0.078, bottle.spiralSpeed))
+        : +(0.042 + Math.random() * 0.026 + ((typeof bottle.depth === "number" ? bottle.depth : 1) * 0.004)).toFixed(3);
+      return {
+        ...bottle,
+        orbitX,
+        orbitY,
+        size: typeof bottle.size === "number" ? bottle.size : 0.94 + Math.random() * 0.22,
+        depth: typeof bottle.depth === "number" ? bottle.depth : +(0.7 + Math.random() * 0.55).toFixed(2),
+        floatDuration: typeof bottle.floatDuration === "number" ? bottle.floatDuration : 14 + Math.floor(Math.random() * 8),
+        tilt: typeof bottle.tilt === "number" ? bottle.tilt : Math.round(-40 + Math.random() * 80),
+        spiralBaseAngle: typeof bottle.spiralBaseAngle === "number" ? bottle.spiralBaseAngle : Math.atan2(deltaYPct, deltaXPct || 0.0001),
+        spiralRadiusFactor: normalizedRadiusFactor,
+        spiralInnerFactor: normalizedInnerFactor,
+        spiralLane: typeof bottle.spiralLane === "number" ? Math.max(-1.2, Math.min(1.2, bottle.spiralLane)) : defaultLane,
+        spiralProgress: typeof bottle.spiralProgress === "number" ? bottle.spiralProgress : Math.random(),
+        spiralSpeed: normalizedSpeed,
+        spiralTurns: normalizedTurns,
+        comments: Array.isArray(bottle.comments) ? bottle.comments : []
+      };
+    }
+
+    function buildAmbientBottles() {
+      const ambientSource = ambientBottleIdeas.slice(0, 10);
+      return ambientSource.map((idea, index) => {
+        const [author, text, category] = idea;
+        const layout = ambientBottleLayouts[index % ambientBottleLayouts.length];
+        const progress = (index / ambientSource.length + (index % 3) * 0.028) % 1;
+        const spiralBaseAngle = (((index / ambientSource.length) * Math.PI * 2) + ((index % 2 === 0 ? -0.2 : 0.24) * (1 + (index % 4) * 0.12)));
+        return {
+          id: `ambient-${index + 1}`,
+          author,
+          text,
+          cloudReply: generateCloudReply(text).reply,
+          category,
+          createdAt: new Date(`2026-05-16T${String(10 + index).padStart(2, "0")}:${String((index * 7) % 60).padStart(2, "0")}:00+08:00`).toISOString(),
+          isMine: false,
+          orbitX: layout.orbitX,
+          orbitY: layout.orbitY,
+          size: layout.size,
+          depth: layout.depth,
+          floatDuration: layout.floatDuration,
+          tilt: layout.tilt,
+          spiralBaseAngle: +spiralBaseAngle.toFixed(3),
+          spiralProgress: progress,
+          spiralRadiusFactor: +(0.62 + (index % 4) * 0.075).toFixed(3),
+          spiralInnerFactor: +(0.016 + (index % 3) * 0.007).toFixed(3),
+          spiralLane: +(((index % 5) - 2) * 0.36).toFixed(2),
+          spiralTurns: +(1.34 + (index % 4) * 0.16).toFixed(2),
+          spiralSpeed: +(0.044 + (index % 5) * 0.005).toFixed(3),
+          comments: []
+        };
+      });
+    }
+
+    function ensureBottleDensity(bottles) {
+      const existingIds = new Set(bottles.map((item) => item.id));
+      const supplements = buildAmbientBottles().filter((item) => !existingIds.has(item.id));
+      const merged = [...bottles];
+      for (const item of supplements) {
+        merged.push(hydrateBottle(item));
+      }
+      return merged;
+    }
+
+    function getMyBottles() {
+      return state.bottles.filter((item) => item.isMine).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+
+    function getBottleById(id) {
+      return state.bottles.find((item) => item.id === id);
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.bottles));
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          state.bottles = ensureBottleDensity(seedBottles.map(hydrateBottle));
+          saveState();
+          return;
+        }
+
+        const parsed = JSON.parse(raw);
+        state.bottles = Array.isArray(parsed) && parsed.length
+          ? ensureBottleDensity(parsed.map(hydrateBottle))
+          : ensureBottleDensity(seedBottles.map(hydrateBottle));
+      } catch (error) {
+        state.bottles = ensureBottleDensity(seedBottles.map(hydrateBottle));
+      }
+    }
+
+    function resetToSeed() {
+      localStorage.removeItem(STORAGE_KEY);
+      state.bottles = ensureBottleDensity(seedBottles.map(hydrateBottle));
+      state.lastLaunchedBottleId = null;
+      saveState();
+      renderAll();
+      setStatus("星河已恢复到初始状态，等你重新投入新的梦想。", false);
+    }
+
+    function classifyInput(text) {
+      const source = text.toLowerCase();
+      const hasQuestion = /[?？为什么怎么怎样是否会不会能不能]/.test(text);
+      const groups = [
+        { category: "fear", keywords: ["害怕", "担心", "紧张", "不敢", "焦虑", "没信心"] },
+        { category: "pilot", keywords: ["飞行员", "机长", "航校", "训练", "驾照", "执照", "副驾"] },
+        { category: "travel", keywords: ["旅行", "远方", "家人", "看海", "日落", "舷窗", "雪山", "出发", "环游"] },
+        { category: "invention", keywords: ["设计", "发明", "新能源", "环保", "安静", "引擎", "太阳能", "机翼", "未来飞机"] },
+        { category: "knowledge", keywords: ["原理", "为什么", "知识", "窗户", "升力", "气流", "发动机", "暴雨", "雷达"] }
+      ];
+
+      for (const group of groups) {
+        if (group.keywords.some((keyword) => source.includes(keyword.toLowerCase()))) {
+          return group.category;
+        }
+      }
+
+      if (hasQuestion) {
+        return "question";
+      }
+
+      if (source.includes("飞") || source.includes("天空") || source.includes("航空")) {
+        return "encouragement";
+      }
+
+      return "encouragement";
+    }
+
+    function generateCloudReply(text) {
+      const category = classifyInput(text);
+      const hasQuestion = /[?？]/.test(text);
+      const pool = replyPools[category] || replyPools.encouragement;
+      let reply = randomFrom(pool);
+
+      if (category === "question" && hasQuestion) {
+        reply += " 如果你愿意，还可以继续把问题写得更具体一点，星河会给出更聚焦的回声。";
+      }
+
+      if (category === "travel" && text.length < 20) {
+        reply += " 也许你可以顺手把第一个想去的城市也写下来，让梦想更有方向。";
+      }
+
+      if (category === "fear") {
+        reply += " 今晚先别急着证明自己，先允许自己继续喜欢飞行。";
+      }
+
+      return { category, reply };
+    }
+
+    function createBottle(text) {
+      const result = generateCloudReply(text);
+      return hydrateBottle({
+        id: uid("mine"),
+        author: "我",
+        text,
+        cloudReply: result.reply,
+        category: result.category,
+        createdAt: new Date().toISOString(),
+        isMine: true,
+        depth: +(0.9 + Math.random() * 0.38).toFixed(2),
+        comments: []
+      });
+    }
+
+    function setStatus(message, isError) {
+      elements.statusNote.textContent = message;
+      elements.statusNote.style.color = isError ? "var(--danger)" : "var(--accent-gold)";
+    }
+
+    function bottleThemeLabel(category) {
+      const map = {
+        pilot: "飞行员梦想",
+        question: "追问天空",
+        travel: "远方旅程",
+        invention: "未来设计",
+        fear: "勇气练习",
+        knowledge: "航空冷知识",
+        encouragement: "星河鼓励"
+      };
+      return map[category] || "星河回信";
+    }
+
+    function renderCounts() {
+      const myBottles = getMyBottles();
+      const commentTotal = state.bottles.reduce((sum, bottle) => sum + bottle.comments.length, 0);
+      elements.totalBottleCount.textContent = String(state.bottles.length);
+      elements.myBottleCount.textContent = String(myBottles.length);
+      elements.commentCount.textContent = String(commentTotal);
+      elements.cloudReplyCount.textContent = String(state.bottles.length);
+    }
+
+    function renderMyBottles() {
+      const myBottles = getMyBottles();
+      if (!myBottles.length) {
+        elements.myBottleList.innerHTML = '<div class="empty-state">你还没有把梦想投入星河。<br>写下第一只漂流瓶后，这里会显示云端回信和后续互动。</div>';
+        return;
+      }
+
+      elements.myBottleList.innerHTML = myBottles.map((bottle) => {
+        const latestComment = bottle.comments[bottle.comments.length - 1];
+        const latestLine = latestComment ? `${latestComment.author}: ${clampText(latestComment.text, 26)}` : "暂时还没有旅人留言";
+        return `
+          <div class="bottle-item">
+            <button type="button" data-open-bottle="${bottle.id}">
+              <strong>${clampText(bottle.text, 34)}</strong>
+              <small>云端已回信 · ${formatDate(bottle.createdAt)}</small>
+              <small>旅人回复 ${bottle.comments.length} 条 · ${latestLine}</small>
+            </button>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderBottleField() {
+      const ordered = [...state.bottles].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      elements.bottleField.innerHTML = ordered.map((bottle) => {
+        const bubbleText = bottle.isMine ? "我的漂流瓶" : bottleThemeLabel(bottle.category);
+        const badge = bottle.isMine ? '<span class="bottle-badge">我的</span>' : "";
+        const isLatest = bottle.id === state.lastLaunchedBottleId;
+        const depth = typeof bottle.depth === "number" ? bottle.depth : 1;
+        const shellScale = (bottle.size || 1) * depth;
+        const blur = Math.max(0, (1 - depth) * 4.6);
+        const opacity = Math.min(1, 0.42 + depth * 0.5);
+        const swayScale = (0.16 + depth * 0.22).toFixed(2);
+        const swayYScale = (0.12 + depth * 0.12).toFixed(2);
+        const tiltScale = (0.18 + depth * 0.18).toFixed(2);
+        const zIndex = Math.max(3, Math.round(depth * 10));
+        const glowStyle = isLatest ? 'style="box-shadow: 0 0 26px rgba(255,227,139,0.45);"' : "";
+        return `
+          <button
+            class="galaxy-bottle"
+            type="button"
+            data-open-bottle="${bottle.id}"
+            aria-label="打开漂流瓶"
+            style="left:${bottle.orbitX}%; top:${bottle.orbitY}%; --float-duration:${bottle.floatDuration}s; --tilt:${bottle.tilt}deg; --depth:${depth}; --shell-scale:${shellScale}; --sway-scale:${swayScale}; --sway-y-scale:${swayYScale}; --tilt-scale:${tiltScale}; z-index:${zIndex}; opacity:${opacity}; filter:blur(${blur}px);"
+          >
+            <span class="bottle-bubble">${bubbleText}</span>
+            <span class="bottle-shell">
+              <span class="bottle-glow" ${glowStyle}></span>
+              <span class="bottle-core"></span>
+              ${badge}
+            </span>
+          </button>
+        `;
+      }).join("");
+    }
+
+    function renderMeta(bottle) {
+      return [
+        `<span class="pill">投放者: ${bottle.author}</span>`,
+        `<span class="pill">主题: ${bottleThemeLabel(bottle.category)}</span>`,
+        `<span class="pill">时间: ${formatDate(bottle.createdAt)}</span>`,
+        `<span class="pill">旅人回复: ${bottle.comments.length}</span>`
+      ].join("");
+    }
+
+    function renderComments(bottle) {
+      if (!bottle.comments.length) {
+        elements.commentList.innerHTML = '<div class="empty-state">还没有旅人留下新回复。<br>你可以成为第一个回应这只漂流瓶的人。</div>';
+        return;
+      }
+
+      const comments = [...bottle.comments].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      elements.commentList.innerHTML = comments.map((comment) => {
+        const extra = comment.preview ? ` · ${comment.preview}` : "";
+        return `
+          <article class="comment-item">
+            <div class="comment-top">
+              <span>${comment.author}${extra}</span>
+              <span>${formatDate(comment.createdAt)}</span>
+            </div>
+            <p class="comment-content">${comment.text}</p>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function openBottle(id) {
+      const bottle = getBottleById(id);
+      if (!bottle) return;
+
+      state.selectedBottleId = id;
+      elements.detailTitle.textContent = bottle.isMine ? "我的星河漂流瓶" : "星河漂流瓶";
+      elements.detailSubtitle.textContent = bottle.isMine ? "你可以在这里查看云端回信和后来者的留言" : "打开后可看到瓶中的文字、云端回信与所有旅人留言";
+      elements.detailText.textContent = bottle.text;
+      elements.detailMeta.innerHTML = renderMeta(bottle);
+      elements.detailCloudReply.textContent = bottle.cloudReply;
+      renderComments(bottle);
+      elements.commentAuthor.value = bottle.isMine ? "来访旅人" : "云端旅人";
+      elements.commentPreview.value = "";
+      elements.commentText.value = "";
+      elements.detailModal.classList.add("active");
+      elements.detailModal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeModal() {
+      elements.detailModal.classList.remove("active");
+      elements.detailModal.setAttribute("aria-hidden", "true");
+      state.selectedBottleId = null;
+    }
+
+    function renderAll() {
+      renderCounts();
+      renderMyBottles();
+      renderBottleField();
+      resetBottlePointerMotion();
+      state.orbitLastTick = 0;
+    }
+
+    function resetBottlePointerMotion() {
+      const bottleNodes = elements.bottleField.querySelectorAll(".galaxy-bottle");
+      bottleNodes.forEach((node) => {
+        node.style.setProperty("--local-pointer-x", "0px");
+        node.style.setProperty("--local-pointer-y", "0px");
+        node.style.setProperty("--local-pointer-tilt", "0deg");
+      });
+    }
+
+    function updateBottleOrbitalPositions(timestamp) {
+      if (!state.orbitLastTick) {
+        state.orbitLastTick = timestamp;
+      }
+
+      const deltaSeconds = Math.min((timestamp - state.orbitLastTick) / 1000, 0.05);
+      state.orbitLastTick = timestamp;
+
+      const sceneRect = elements.sceneStage.getBoundingClientRect();
+      const minDimension = Math.min(sceneRect.width, sceneRect.height);
+      const centerX = sceneRect.width * 0.52;
+      const centerY = sceneRect.height * 0.43;
+
+      state.bottles.forEach((bottle) => {
+        const coreAcceleration = 1 + Math.pow(bottle.spiralProgress, 1.7) * 1.95;
+        bottle.spiralProgress += bottle.spiralSpeed * coreAcceleration * deltaSeconds;
+        if (bottle.spiralProgress >= 1) {
+          bottle.spiralProgress -= 1;
+        }
+      });
+
+      const bottleNodes = elements.bottleField.querySelectorAll(".galaxy-bottle");
+      const layouts = state.bottles.map((bottle, index) => {
+        const progress = bottle.spiralProgress;
+        const outerProgress = 1 - progress;
+        const laneStrength = Math.pow(outerProgress, 0.9);
+        const lane = typeof bottle.spiralLane === "number" ? bottle.spiralLane : 0;
+        const angleProgress = Math.pow(progress, 1.1);
+        const radiusFactor = bottle.spiralInnerFactor + (bottle.spiralRadiusFactor - bottle.spiralInnerFactor) * Math.pow(outerProgress, 0.64);
+        const radius = radiusFactor * minDimension * 1.2;
+        const angle = bottle.spiralBaseAngle + (angleProgress * bottle.spiralTurns * Math.PI * 2) + (lane * 0.26 * laneStrength);
+        const x = centerX + Math.cos(angle) * radius;
+        const y = centerY + Math.sin(angle) * radius * 0.76;
+        const tangentDegrees = (angle + Math.PI / 2) * (180 / Math.PI);
+        const coreInfluence = Math.pow(progress, 1.85);
+        const centerScale = 0.045 + Math.pow(outerProgress, 1.04) * 1.18;
+        const centerOpacity = outerProgress < 0.06
+          ? Math.max(0, outerProgress / 0.06) * 0.3
+          : Math.min(1, 0.26 + Math.pow(outerProgress, 0.86) * 0.82);
+        const centerSpin = (lane * 7.5) + (((index % 2 === 0 ? 1 : -1) * (6 + coreInfluence * 24)));
+        const centerSqueeze = 1 - coreInfluence * 0.16;
+        const centerStretch = 1 + coreInfluence * 0.24;
+        const centerGlowScale = 1 + coreInfluence * 0.95;
+        const centerGlowOpacity = Math.min(1, 0.66 + coreInfluence * 0.34);
+        const centerGlowBlur = 6 + coreInfluence * 9;
+        const centerShellGlow = 20 + coreInfluence * 34;
+        const depth = typeof bottle.depth === "number" ? bottle.depth : 1;
+        const visualScale = Math.max(0.06, (bottle.size || 1) * depth * centerScale);
+        return {
+          bottle,
+          index,
+          progress,
+          outerProgress,
+          lane,
+          x,
+          y,
+          radius,
+          tangentDegrees,
+          centerScale,
+          centerOpacity,
+          centerSpin,
+          centerSqueeze,
+          centerStretch,
+          centerGlowScale,
+          centerGlowOpacity,
+          centerGlowBlur,
+          centerShellGlow,
+          safeRadius: 10 + visualScale * 16
+        };
+      });
+
+      const placedLayouts = [];
+      const adjustedLayouts = [...layouts].sort((a, b) => b.progress - a.progress).map((item) => {
+        let x = item.x;
+        let y = item.y;
+        const radialX = x - centerX;
+        const radialY = y - centerY;
+        const radialLength = Math.max(1, Math.hypot(radialX, radialY));
+        const normalX = -radialY / radialLength;
+        const normalY = radialX / radialLength;
+        const radialUnitX = radialX / radialLength;
+        const radialUnitY = radialY / radialLength;
+        const laneSign = item.lane === 0 ? (item.index % 2 === 0 ? 1 : -1) : Math.sign(item.lane);
+        const laneOffset = laneSign * (6 + Math.abs(item.lane) * 12) * Math.pow(item.outerProgress, 0.94);
+
+        x += normalX * laneOffset;
+        y += normalY * laneOffset * 0.78;
+
+        for (const other of placedLayouts) {
+          const dx = x - other.x;
+          const dy = y - other.y;
+          const distance = Math.hypot(dx, dy) || 0.0001;
+          const minGap = item.safeRadius + other.safeRadius;
+          if (distance >= minGap) continue;
+
+          const overlap = minGap - distance;
+          const awayX = dx / distance;
+          const awayY = dy / distance;
+          x += awayX * overlap * 0.78 + normalX * laneSign * overlap * 0.24 + radialUnitX * overlap * 0.18;
+          y += awayY * overlap * 0.78 + normalY * laneSign * overlap * 0.24 + radialUnitY * overlap * 0.14;
+        }
+
+        const adjusted = { ...item, x, y };
+        placedLayouts.push(adjusted);
+        return adjusted;
+      });
+
+      const layoutMap = new Map(adjustedLayouts.map((item) => [item.bottle.id, item]));
+      bottleNodes.forEach((node) => {
+        const bottleId = node.getAttribute("data-open-bottle");
+        const layout = layoutMap.get(bottleId);
+        if (!layout) return;
+
+        node.style.left = `${layout.x}px`;
+        node.style.top = `${layout.y}px`;
+        node.style.setProperty("--tilt", `${layout.bottle.tilt + layout.tangentDegrees * 0.12}deg`);
+        node.style.setProperty("--orbit-scale", layout.centerScale.toFixed(3));
+        node.style.setProperty("--center-spin", `${layout.centerSpin.toFixed(2)}deg`);
+        node.style.setProperty("--center-squeeze", layout.centerSqueeze.toFixed(3));
+        node.style.setProperty("--center-stretch", layout.centerStretch.toFixed(3));
+        node.style.setProperty("--center-glow-scale", layout.centerGlowScale.toFixed(3));
+        node.style.setProperty("--center-glow-opacity", layout.centerGlowOpacity.toFixed(3));
+        node.style.setProperty("--center-glow-blur", `${layout.centerGlowBlur.toFixed(2)}px`);
+        node.style.setProperty("--center-shell-glow", `${layout.centerShellGlow.toFixed(2)}px`);
+        node.style.opacity = layout.centerOpacity.toFixed(3);
+      });
+
+      state.orbitAnimationFrame = window.requestAnimationFrame(updateBottleOrbitalPositions);
+    }
+
+    function ensureOrbitAnimation() {
+      if (state.orbitAnimationFrame) return;
+      state.orbitAnimationFrame = window.requestAnimationFrame(updateBottleOrbitalPositions);
+    }
+
+    function updateBottlePointerMotion(event) {
+      const bottleNodes = elements.bottleField.querySelectorAll(".galaxy-bottle");
+      if (!bottleNodes.length) return;
+
+      const influenceRadius = 230;
+      bottleNodes.forEach((node) => {
+        const rect = node.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const deltaX = event.clientX - centerX;
+        const deltaY = event.clientY - centerY;
+        const distance = Math.hypot(deltaX, deltaY);
+        const strength = Math.max(0, 1 - distance / influenceRadius);
+
+        if (strength <= 0) {
+          node.style.setProperty("--local-pointer-x", "0px");
+          node.style.setProperty("--local-pointer-y", "0px");
+          node.style.setProperty("--local-pointer-tilt", "0deg");
+          return;
+        }
+
+        const eased = strength * strength;
+        node.style.setProperty("--local-pointer-x", `${(deltaX * 0.32 * eased).toFixed(2)}px`);
+        node.style.setProperty("--local-pointer-y", `${(deltaY * 0.22 * eased).toFixed(2)}px`);
+        node.style.setProperty("--local-pointer-tilt", `${((deltaX * 0.08) + (deltaY * 0.026)) * eased}deg`);
+      });
+    }
+
+    function animateLaunch() {
+      elements.dreamer.classList.remove("throwing");
+      void elements.dreamer.offsetWidth;
+      elements.dreamer.classList.add("throwing");
+
+      elements.launchButton.classList.remove("launching");
+      void elements.launchButton.offsetWidth;
+      elements.launchButton.classList.add("launching");
+
+      elements.launchBottle.classList.remove("active");
+      void elements.launchBottle.offsetWidth;
+      elements.launchBottle.classList.add("active");
+
+      window.setTimeout(() => {
+        elements.dreamer.classList.remove("throwing");
+        elements.launchBottle.classList.remove("active");
+        elements.launchButton.classList.remove("launching");
+      }, 3000);
+    }
+
+    function handleLaunch() {
+      const text = elements.dreamInput.value.trim();
+      if (!text) {
+        setStatus("先写下一句关于飞行的梦想、问题或心愿，再把它投入云端。", true);
+        return;
+      }
+
+      elements.launchButton.disabled = true;
+      animateLaunch();
+
+      const bottle = createBottle(text);
+      state.bottles.push(bottle);
+      state.lastLaunchedBottleId = bottle.id;
+      saveState();
+      renderAll();
+
+      elements.latestHint.textContent = "新投出的瓶子正沿着星轨缓缓升空。";
+      setStatus("漂流瓶已发射，正沿着夜空慢慢升起。", false);
+
+      window.setTimeout(() => {
+        elements.launchButton.disabled = false;
+        elements.dreamInput.value = "";
+        updateInputCount();
+        openBottle(bottle.id);
+        setStatus("对话已经从云端慢慢展开，你也可以等待后续留言。", false);
+      }, 3400);
+    }
+
+    function addComment(event) {
+      event.preventDefault();
+      const bottle = getBottleById(state.selectedBottleId);
+      if (!bottle) return;
+
+      const author = (elements.commentAuthor.value.trim() || aliasPool[state.aliasIndex % aliasPool.length]).slice(0, 20);
+      const preview = elements.commentPreview.value.trim().slice(0, 26);
+      const text = elements.commentText.value.trim();
+
+      if (!text) {
+        setStatus("留言内容不能为空，写下你的鼓励、建议或航空补充吧。", true);
+        return;
+      }
+
+      bottle.comments.push({
+        id: uid("reply"),
+        author,
+        preview,
+        text,
+        createdAt: new Date().toISOString(),
+        type: "traveler"
+      });
+      state.aliasIndex += 1;
+      saveState();
+      renderAll();
+      openBottle(bottle.id);
+      setStatus("新的旅人回复已经附着在这只漂流瓶上。", false);
+    }
+
+    function updateInputCount() {
+      elements.inputCount.textContent = `${elements.dreamInput.value.length} / 180`;
+    }
+
+    function bindEvents() {
+      elements.launchButton.addEventListener("click", handleLaunch);
+      elements.focusMyBottleButton.addEventListener("click", () => {
+        const myBottles = getMyBottles();
+        if (!myBottles.length) {
+          setStatus("你还没有自己的漂流瓶，先投入第一只吧。", true);
+          return;
+        }
+        elements.myBottlesCard.classList.toggle("expanded");
+      });
+
+      elements.dreamInput.addEventListener("input", updateInputCount);
+      elements.bottleField.addEventListener("click", (event) => {
+        const trigger = event.target.closest("[data-open-bottle]");
+        if (trigger) {
+          openBottle(trigger.getAttribute("data-open-bottle"));
+        }
+      });
+      elements.myBottleList.addEventListener("click", (event) => {
+        const trigger = event.target.closest("[data-open-bottle]");
+        if (trigger) {
+          openBottle(trigger.getAttribute("data-open-bottle"));
+        }
+      });
+      elements.closeModal.addEventListener("click", closeModal);
+      elements.detailModal.addEventListener("click", (event) => {
+        if (event.target === elements.detailModal) {
+          closeModal();
+        }
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          closeModal();
+        }
+      });
+      elements.commentForm.addEventListener("submit", addComment);
+      elements.sceneStage.addEventListener("mousemove", updateBottlePointerMotion);
+      elements.sceneStage.addEventListener("mouseleave", resetBottlePointerMotion);
+      window.addEventListener("keydown", (event) => {
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "r") {
+          event.preventDefault();
+          resetToSeed();
+        }
+      });
+    }
+
+    function setupCanvas() {
+      const canvas = elements.galaxyCanvas;
+      const context = canvas.getContext("2d");
+      const particles = [];
+      const ionParticles = [];
+      const particleCount = 180;
+      const ionCount = 40;
+
+      function resize() {
+        canvas.width = window.innerWidth * window.devicePixelRatio;
+        canvas.height = window.innerHeight * window.devicePixelRatio;
+        canvas.style.width = `${window.innerWidth}px`;
+        canvas.style.height = `${window.innerHeight}px`;
+        context.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+      }
+
+      function createParticles() {
+        particles.length = 0;
+        for (let i = 0; i < particleCount; i += 1) {
+          particles.push({
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+            radius: Math.random() * 1.8 + 0.6,
+            speedX: Math.random() * 0.3 + 0.08,
+            speedY: (Math.random() - 0.5) * 0.08,
+            alpha: Math.random() * 0.7 + 0.2
+          });
+        }
+
+        ionParticles.length = 0;
+        for (let i = 0; i < ionCount; i += 1) {
+          ionParticles.push({
+            lane: i % 2,
+            progress: Math.random(),
+            speed: 0.00008 + Math.random() * 0.00018,
+            radius: 1.6 + Math.random() * 2.8,
+            alpha: 0.28 + Math.random() * 0.56,
+            warm: Math.random() > 0.45
+          });
+        }
+      }
+
+      function drawGalaxyCore(time) {
+        const cx = window.innerWidth * 0.53;
+        const cy = window.innerHeight * 0.42;
+
+        const outerGlow = context.createRadialGradient(cx, cy, 0, cx, cy, window.innerWidth * 0.28);
+        outerGlow.addColorStop(0, "rgba(255, 249, 227, 0.24)");
+        outerGlow.addColorStop(0.18, "rgba(240, 199, 104, 0.2)");
+        outerGlow.addColorStop(0.48, "rgba(121, 96, 210, 0.14)");
+        outerGlow.addColorStop(1, "rgba(14, 21, 48, 0)");
+        context.fillStyle = outerGlow;
+        context.globalCompositeOperation = "screen";
+        context.beginPath();
+        context.arc(cx, cy, window.innerWidth * 0.28, 0, Math.PI * 2);
+        context.fill();
+
+        context.save();
+        context.translate(cx, cy);
+        context.rotate(time * 0.00004);
+        for (let i = 0; i < 150; i += 1) {
+          const progress = i / 150;
+          const angle = progress * Math.PI * 7.6;
+          const radius = 10 + progress * Math.min(window.innerWidth, window.innerHeight) * 0.36;
+          const brushX = Math.cos(angle) * radius;
+          const brushY = Math.sin(angle) * radius * 0.72;
+          const length = 18 + progress * 36;
+          context.save();
+          context.translate(brushX, brushY);
+          context.rotate(angle + Math.PI / 2);
+          context.globalAlpha = 0.16 + (1 - progress) * 0.3;
+          context.lineWidth = 2 + (1 - progress) * 3.6;
+          context.strokeStyle = i % 3 === 0
+            ? "rgba(255, 223, 135, 0.9)"
+            : i % 3 === 1
+              ? "rgba(171, 187, 255, 0.48)"
+              : "rgba(177, 138, 255, 0.32)";
+          context.beginPath();
+          context.moveTo(-length * 0.38, 0);
+          context.lineTo(length, 0);
+          context.stroke();
+          context.restore();
+        }
+        context.restore();
+
+        const coreGlow = context.createRadialGradient(cx, cy, 0, cx, cy, window.innerWidth * 0.09);
+        coreGlow.addColorStop(0, "rgba(255,255,255,0.98)");
+        coreGlow.addColorStop(0.18, "rgba(255, 239, 196, 0.92)");
+        coreGlow.addColorStop(0.48, "rgba(255, 214, 125, 0.5)");
+        coreGlow.addColorStop(1, "rgba(255, 214, 125, 0)");
+        context.fillStyle = coreGlow;
+        context.beginPath();
+        context.arc(cx, cy, window.innerWidth * 0.09, 0, Math.PI * 2);
+        context.fill();
+        context.globalCompositeOperation = "source-over";
+      }
+
+      function drawGalaxySwirlStrokes(time) {
+        const cx = window.innerWidth * 0.52;
+        const cy = window.innerHeight * 0.43;
+        const maxRadius = Math.min(window.innerWidth, window.innerHeight) * 0.62;
+
+        context.save();
+        context.lineCap = "round";
+        context.globalCompositeOperation = "screen";
+        for (let arm = 0; arm < 4; arm += 1) {
+          for (let i = 0; i < 54; i += 1) {
+            const progress = i / 54;
+            const angle = (progress * Math.PI * 3.3) + arm * (Math.PI / 2) + (time * 0.00006);
+            const radius = 46 + progress * maxRadius;
+            const x = cx + Math.cos(angle) * radius;
+            const y = cy + Math.sin(angle) * radius * 0.76;
+            const tangent = angle + Math.PI / 2;
+            const len = 18 + progress * 44;
+            context.strokeStyle = arm % 2 === 0
+              ? `rgba(255, 220, 126, ${0.18 + (1 - progress) * 0.22})`
+              : `rgba(130, 159, 255, ${0.12 + (1 - progress) * 0.14})`;
+            context.lineWidth = 2 + (1 - progress) * 3.4;
+            context.beginPath();
+            context.moveTo(x - Math.cos(tangent) * len * 0.3, y - Math.sin(tangent) * len * 0.3);
+            context.lineTo(x + Math.cos(tangent) * len, y + Math.sin(tangent) * len);
+            context.stroke();
+          }
+        }
+        context.restore();
+      }
+
+      function drawSpiralIons(time) {
+        const cx = window.innerWidth * 0.52;
+        const cy = window.innerHeight * 0.43;
+        ionParticles.forEach((particle, index) => {
+          particle.progress = (particle.progress + particle.speed) % 1;
+          const armOffset = particle.lane * Math.PI + ((index % 3) * 0.55);
+          const radius = 40 + particle.progress * Math.min(window.innerWidth, window.innerHeight) * 0.56;
+          const angle = particle.progress * Math.PI * 4.2 + armOffset + (time * 0.00008);
+          const x = cx + Math.cos(angle) * radius;
+          const y = cy + Math.sin(angle) * radius * 0.76;
+          const tangent = angle + Math.PI / 2;
+          const trailLength = 12 + particle.radius * 8;
+
+          context.beginPath();
+          context.strokeStyle = particle.warm
+            ? `rgba(255, 224, 138, ${particle.alpha * 0.42})`
+            : `rgba(177, 222, 255, ${particle.alpha * 0.34})`;
+          context.lineWidth = particle.radius * 1.2;
+          context.lineCap = "round";
+          context.moveTo(x - Math.cos(tangent) * trailLength, y - Math.sin(tangent) * trailLength);
+          context.lineTo(x + Math.cos(tangent) * trailLength * 0.4, y + Math.sin(tangent) * trailLength * 0.4);
+          context.stroke();
+
+          context.beginPath();
+          context.fillStyle = particle.warm
+            ? `rgba(255, 233, 176, ${particle.alpha})`
+            : `rgba(176, 223, 255, ${particle.alpha})`;
+          context.shadowBlur = 18;
+          context.shadowColor = particle.warm ? "rgba(255, 226, 141, 0.52)" : "rgba(155, 216, 255, 0.4)";
+          context.arc(x, y, particle.radius, 0, Math.PI * 2);
+          context.fill();
+          context.shadowBlur = 0;
+        });
+      }
+
+      function renderFrame() {
+        context.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        const time = performance.now();
+
+        drawGalaxyCore(time);
+        drawGalaxySwirlStrokes(time);
+        drawSpiralIons(time);
+
+        particles.forEach((particle) => {
+          particle.x += particle.speedX;
+          particle.y += particle.speedY;
+          if (particle.x > window.innerWidth + 10) {
+            particle.x = -10;
+            particle.y = Math.random() * window.innerHeight;
+          }
+          context.beginPath();
+          context.fillStyle = `rgba(255,255,255,${particle.alpha})`;
+          context.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+          context.fill();
+        });
+
+        requestAnimationFrame(renderFrame);
+      }
+
+      resize();
+      createParticles();
+      renderFrame();
+      window.addEventListener("resize", () => {
+        resize();
+        createParticles();
+      });
+    }
+
+    function init() {
+      loadState();
+      updateInputCount();
+      bindEvents();
+      renderAll();
+      setupCanvas();
+      ensureOrbitAnimation();
+      setStatus("在星河里点开任意漂流瓶，看看大家都把什么心事交给了天空。", false);
+    }
+
+    init();
+  </script>
+</body>
+</html>
