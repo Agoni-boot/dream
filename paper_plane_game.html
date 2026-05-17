@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>纸飞机工程师</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-top: 0;
+        }
+        canvas {
+            border: 3px solid #333;
+            border-radius: 8px;
+            display: block;
+            margin: 10px auto;
+            background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 100%);
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+        .control-group label {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 5px;
+        }
+        .control-group input[type="range"] {
+            width: 100%;
+        }
+        .control-group select {
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        #throwBtn {
+            background: #4CAF50;
+            color: white;
+        }
+        #throwBtn:hover {
+            background: #45a049;
+        }
+        #resetBtn {
+            background: #f44336;
+            color: white;
+        }
+        #resetBtn:hover {
+            background: #da190b;
+        }
+        #challengeBtn {
+            background: #2196F3;
+            color: white;
+        }
+        #challengeBtn:hover {
+            background: #0b7dda;
+        }
+        .stats {
+            text-align: center;
+            font-size: 18px;
+            margin: 10px 0;
+        }
+        .result {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .success {
+            background: #4CAF50;
+            color: white;
+            animation: pulse 1s infinite;
+        }
+        .failure {
+            background: #ff9800;
+            color: white;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .value-display {
+            font-weight: bold;
+            color: #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✈️ 纸飞机工程师</h1>
+        <canvas id="canvas" width="800" height="500"></canvas>
+        
+        <div class="stats">
+            当前距离: <span id="currentDistance" class="value-display">0.0</span> 米 | 
+            滞空时间: <span id="currentTime" class="value-display">0.0</span> 秒
+        </div>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>机翼面积: <span id="wingAreaVal">1.0</span> m²</label>
+                <input type="range" id="wingArea" min="0.5" max="2.0" step="0.1" value="1.0">
+            </div>
+            <div class="control-group">
+                <label>重心位置: <span id="cgVal">0.5</span> (0.2=前, 0.8=后)</label>
+                <input type="range" id="cgPosition" min="0.2" max="0.8" step="0.05" value="0.5">
+            </div>
+            <div class="control-group">
+                <label>翼尖形状:</label>
+                <select id="wingTip">
+                    <option value="flat">平直</option>
+                    <option value="up">上翘</option>
+                    <option value="down">下反</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>折叠角度: <span id="foldAngleVal">0</span>°</label>
+                <input type="range" id="foldAngle" min="-10" max="20" step="1" value="0">
+            </div>
+            <div class="control-group">
+                <label>投掷初速度: <span id="throwSpeedVal">15</span> m/s</label>
+                <input type="range" id="throwSpeed" min="5" max="25" step="1" value="15">
+            </div>
+        </div>
+        
+        <div class="buttons">
+            <button id="throwBtn">🎯 投掷</button>
+            <button id="challengeBtn">🏆 最远距离挑战 (30米)</button>
+            <button id="resetBtn">🔄 重置</button>
+        </div>
+        
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 物理常量
+        const MASS = 0.05; // kg
+        const GRAVITY = 9.8; // m/s²
+        const SCALE = 10; // pixels per meter
+        const GROUND_Y = canvas.height - 50;
+        
+        // 游戏状态
+        let plane = null;
+        let isFlying = false;
+        let animationId = null;
+        let challengeMode = false;
+        let startTime = 0;
+        let trail = [];
+        
+        // 控件
+        const controls = {
+            wingArea: document.getElementById('wingArea'),
+            cgPosition: document.getElementById('cgPosition'),
+            wingTip: document.getElementById('wingTip'),
+            foldAngle: document.getElementById('foldAngle'),
+            throwSpeed: document.getElementById('throwSpeed')
+        };
+        
+        // 更新控件显示
+        function updateDisplay() {
+            document.getElementById('wingAreaVal').textContent = controls.wingArea.value;
+            document.getElementById('cgVal').textContent = controls.cgPosition.value;
+            document.getElementById('foldAngleVal').textContent = controls.foldAngle.value;
+            document.getElementById('throwSpeedVal').textContent = controls.throwSpeed.value;
+        }
+        
+        // 监听控件变化
+        Object.values(controls).forEach(control => {
+            control.addEventListener('input', () => {
+                updateDisplay();
+                if (!isFlying) drawScene();
+            });
+        });
+        
+        // 获取参数
+        function getParams() {
+            return {
+                wingArea: parseFloat(controls.wingArea.value),
+                cgPosition: parseFloat(controls.cgPosition.value),
+                wingTip: controls.wingTip.value,
+                foldAngle: parseFloat(controls.foldAngle.value),
+                throwSpeed: parseFloat(controls.throwSpeed.value)
+            };
+        }
+        
+        // 初始化纸飞机
+        function initPlane() {
+            const params = getParams();
+            plane = {
+                x: 50 / SCALE, // 50 pixels from left
+                y: (GROUND_Y - 100) / SCALE, // 1m above ground
+                vx: params.throwSpeed,
+                vy: 0,
+                angle: params.foldAngle * Math.PI / 180, // 初始迎角
+                angularVelocity: 0,
+                params: params
+            };
+            trail = [];
+            startTime = Date.now();
+        }
+        
+        // 计算力
+        function calculateForces() {
+            const params = plane.params;
+            const speed = Math.sqrt(plane.vx * plane.vx + plane.vy * plane.vy);
+            const angleOfAttack = plane.angle; // 迎角（弧度）
+            
+            // 升力系数 CL = 0.1 + 0.05 * 迎角（度）
+            const CL = 0.1 + 0.05 * (angleOfAttack * 180 / Math.PI);
+            const lift = 0.5 * 1.225 * params.wingArea * CL * speed * speed;
+            
+            // 阻力系数 CD = 0.05 * 机翼面积，翼尖形状微调
+            let CD = 0.05 * params.wingArea;
+            if (params.wingTip === 'up') CD *= 1.05;
+            if (params.wingTip === 'down') CD *= 0.95;
+            const drag = 0.5 * 1.225 * params.wingArea * CD * speed * speed;
+            
+            // 力的方向
+            const flightAngle = Math.atan2(plane.vy, plane.vx);
+            const liftAngle = flightAngle + Math.PI / 2;
+            
+            const liftX = lift * Math.cos(liftAngle);
+            const liftY = lift * Math.sin(liftAngle);
+            const dragX = -drag * Math.cos(flightAngle);
+            const dragY = -drag * Math.sin(flightAngle);
+            const gravityY = MASS * GRAVITY;
+            
+            return {
+                fx: liftX + dragX,
+                fy: liftY + dragY + gravityY,
+                speed: speed,
+                angleOfAttack: angleOfAttack
+            };
+        }
+        
+        // 更新物理
+        function updatePhysics(dt) {
+            const forces = calculateForces();
+            const params = plane.params;
+            
+            // 线性加速度
+            const ax = forces.fx / MASS;
+            const ay = forces.fy / MASS;
+            
+            // 更新速度和位置
+            plane.vx += ax * dt;
+            plane.vy += ay * dt;
+            plane.x += plane.vx * dt;
+            plane.y += plane.vy * dt;
+            
+            // 重心影响俯仰稳定性
+            // 0.2=前（稳定，回正），0.8=后（不稳定，发散）
+            const stabilityFactor = (0.5 - params.cgPosition) * 2; // -0.6 to 0.6
+            const targetAngle = params.foldAngle * Math.PI / 180;
+            const angleDiff = targetAngle - plane.angle;
+            
+            // 角加速度
+            const angularAccel = stabilityFactor * 2 * angleDiff;
+            plane.angularVelocity += angularAccel * dt;
+            plane.angle += plane.angularVelocity * dt;
+            
+            // 限制角度范围
+            plane.angle = Math.max(-Math.PI/3, Math.min(Math.PI/3, plane.angle));
+            
+            // 记录轨迹
+            trail.push({x: plane.x, y: plane.y});
+            if (trail.length > 1000) trail.shift();
+        }
+        
+        // 检查碰撞
+        function checkCollision() {
+            const groundY = GROUND_Y / SCALE;
+            
+            // 落地
+            if (plane.y >= groundY) {
+                plane.y = groundY;
+                return true;
+            }
+            
+            // 出边界
+            if (plane.x * SCALE > canvas.width + 100 || plane.x * SCALE < -100) {
+                return true;
+            }
+            
+            return false;
+        }
+        
+        // 绘制场景
+        function drawScene() {
+            // 清空画布
+            ctx.fillStyle = 'linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 100%)';
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(1, '#E0F6FF');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制地面
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
+            
+            // 草地
+            ctx.fillStyle = '#228B22';
+            ctx.fillRect(0, GROUND_Y, canvas.width, 20);
+            
+            // 绘制挑战目标线（30米）
+            if (challengeMode) {
+                const targetX = 30 * SCALE;
+                ctx.strokeStyle = '#FFD700';
+                ctx.lineWidth = 3;
+                ctx.setLineDash([10, 5]);
+                ctx.beginPath();
+                ctx.moveTo(targetX, 0);
+                ctx.lineTo(targetX, GROUND_Y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                ctx.fillStyle = '#FFD700';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('🏆 30米目标', targetX, 30);
+            }
+            
+            // 绘制轨迹
+            if (trail.length > 1) {
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(trail[0].x * SCALE, trail[0].y * SCALE);
+                for (let i = 1; i < trail.length; i++) {
+                    ctx.lineTo(trail[i].x * SCALE, trail[i].y * SCALE);
+                }
+                ctx.stroke();
+            }
+            
+            // 绘制纸飞机
+            if (plane) {
+                const px = plane.x * SCALE;
+                const py = plane.y * SCALE;
+                
+                ctx.save();
+                ctx.translate(px, py);
+                ctx.rotate(plane.angle);
+                
+                // 机身（三角形）
+                ctx.fillStyle = '#FF6B6B';
+                ctx.beginPath();
+                ctx.moveTo(30, 0);
+                ctx.lineTo(-20, -15);
+                ctx.lineTo(-20, 15);
+                ctx.closePath();
+                ctx.fill();
+                
+                // 机翼
+                const wingSpan = 25 * plane.params.wingArea;
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(-5, -wingSpan);
+                ctx.lineTo(-5, wingSpan);
+                ctx.stroke();
+                
+                // 翼尖形状
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 2;
+                if (plane.params.wingTip === 'up') {
+                    ctx.beginPath();
+                    ctx.moveTo(-5, -wingSpan);
+                    ctx.lineTo(-10, -wingSpan - 8);
+                    ctx.moveTo(-5, wingSpan);
+                    ctx.lineTo(-10, wingSpan - 8);
+                    ctx.stroke();
+                } else if (plane.params.wingTip === 'down') {
+                    ctx.beginPath();
+                    ctx.moveTo(-5, -wingSpan);
+                    ctx.lineTo(-10, -wingSpan + 8);
+                    ctx.moveTo(-5, wingSpan);
+                    ctx.lineTo(-10, wingSpan + 8);
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
+            } else {
+                // 绘制预览飞机
+                const params = getParams();
+                const px = 80;
+                const py = GROUND_Y - 100;
+                
+                ctx.save();
+                ctx.translate(px, py);
+                ctx.rotate(params.foldAngle * Math.PI / 180);
+                
+                ctx.fillStyle = '#FF6B6B';
+                ctx.beginPath();
+                ctx.moveTo(30, 0);
+                ctx.lineTo(-20, -15);
+                ctx.lineTo(-20, 15);
+                ctx.closePath();
+                ctx.fill();
+                
+                const wingSpan = 25 * params.wingArea;
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(-5, -wingSpan);
+                ctx.lineTo(-5, wingSpan);
+                ctx.stroke();
+                
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 2;
+                if (params.wingTip === 'up') {
+                    ctx.beginPath();
+                    ctx.moveTo(-5, -wingSpan);
+                    ctx.lineTo(-10, -wingSpan - 8);
+                    ctx.moveTo(-5, wingSpan);
+                    ctx.lineTo(-10, wingSpan - 8);
+                    ctx.stroke();
+                } else if (params.wingTip === 'down') {
+                    ctx.beginPath();
+                    ctx.moveTo(-5, -wingSpan);
+                    ctx.lineTo(-10, -wingSpan + 8);
+                    ctx.moveTo(-5, wingSpan);
+                    ctx.lineTo(-10, wingSpan + 8);
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
+            }
+        }
+        
+        // 显示结果
+        function showResult(success) {
+            const resultDiv = document.getElementById('result');
+            const distance = plane ? Math.max(0, plane.x - 50/SCALE) : 0;
+            const time = (Date.now() - startTime) / 1000;
+            
+            if (challengeMode) {
+                if (distance >= 30) {
+                    resultDiv.textContent = `🎉 挑战成功！飞行距离: ${distance.toFixed(1)}米，滞空: ${time.toFixed(1)}秒`;
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.textContent = `😅 未达目标！飞行距离: ${distance.toFixed(1)}米（目标30米），滞空: ${time.toFixed(1)}秒`;
+                    resultDiv.className = 'result failure';
+                }
+            } else {
+                resultDiv.textContent = `✈️ 飞行结束！距离: ${distance.toFixed(1)}米，滞空: ${time.toFixed(1)}秒`;
+                resultDiv.className = 'result failure';
+            }
+            resultDiv.style.display = 'block';
+        }
+        
+        // 动画循环
+        let lastTime = 0;
+        function animate(currentTime) {
+            if (lastTime === 0) lastTime = currentTime;
+            const dt = Math.min((currentTime - lastTime) / 1000, 0.1);
+            lastTime = currentTime;
+            
+            if (isFlying && plane) {
+                updatePhysics(dt);
+                
+                // 更新统计
+                const distance = Math.max(0, plane.x - 50/SCALE);
+                const time = (Date.now() - startTime) / 1000;
+                document.getElementById('currentDistance').textContent = distance.toFixed(1);
+                document.getElementById('currentTime').textContent = time.toFixed(1);
+                
+                if (checkCollision()) {
+                    isFlying = false;
+                    showResult(distance >= 30);
+                    cancelAnimationFrame(animationId);
+                    return;
+                }
+            }
+            
+            drawScene();
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // 投掷
+        document.getElementById('throwBtn').addEventListener('click', () => {
+            if (isFlying) return;
+            document.getElementById('result').style.display = 'none';
+            initPlane();
+            isFlying = true;
+            lastTime = 0;
+            animationId = requestAnimationFrame(animate);
+        });
+        
+        // 挑战模式
+        document.getElementById('challengeBtn').addEventListener('click', () => {
+            challengeMode = !challengeMode;
+            document.getElementById('challengeBtn').textContent = challengeMode ? '🎯 普通模式' : '🏆 最远距离挑战 (30米)';
+            if (!isFlying) drawScene();
+        });
+        
+        // 重置
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            isFlying = false;
+            plane = null;
+            trail = [];
+            challengeMode = false;
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('currentDistance').textContent = '0.0';
+            document.getElementById('currentTime').textContent = '0.0';
+            document.getElementById('challengeBtn').textContent = '🏆 最远距离挑战 (30米)';
+            if (animationId) cancelAnimationFrame(animationId);
+            drawScene();
+        });
+        
+        // 初始化
+        updateDisplay();
+        drawScene();
+    </script>
+</body>
+</html>
